@@ -1,2 +1,2 @@
 org.springframework.boot.env.EnvironmentPostProcessor=\
-  com.expense.config.DotenvEnvironmentPostProcessor
+  com.xingzhewk.config.DotenvEnvironmentPostProcessor

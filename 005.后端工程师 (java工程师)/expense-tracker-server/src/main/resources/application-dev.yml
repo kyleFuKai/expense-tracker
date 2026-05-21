@@ -34,4 +34,4 @@ jwt:
 logging:
   level:
     root: INFO
-    com.expense: DEBUG
+    com.xingzhewk: DEBUG

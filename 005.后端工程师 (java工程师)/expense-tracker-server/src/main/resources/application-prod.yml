@@ -26,4 +26,4 @@ jwt:
 logging:
   level:
     root: WARN
-    com.expense: INFO
+    com.xingzhewk: INFO

@@ -11,7 +11,7 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.expense</groupId>
+    <groupId>com.xingzhewk</groupId>
     <artifactId>expense-tracker-server</artifactId>
     <version>1.0.0</version>
     <name>expense-tracker-server</name>
