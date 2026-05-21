@@ -1,5 +1,5 @@
 #!/bin/bash
-# 全量测试脚本 — Java Spring Boot 后端适配版
+# 全量测试脚本 — Java Spring Boot 后端
 # 端口: 8080 | 与 Node.js 后端 API 完全一致
 
 BASE="http://localhost:8080"
@@ -10,16 +10,16 @@ FAIL_COUNT=0
 TOTAL=0
 AUTHH=""
 
-# ============ Helper Functions ============
+# ============ 辅助函数 ============
 assert_code() {
     local id="$1" desc="$2" expected="$3" actual="$4"
     TOTAL=$((TOTAL + 1))
     if [ "$actual" = "$expected" ]; then
         PASS_COUNT=$((PASS_COUNT + 1))
-        echo "[PASS] $id: $desc (code=$actual)"
+        echo "[通过] $id: $desc (返回码=$actual)"
     else
         FAIL_COUNT=$((FAIL_COUNT + 1))
-        echo "[FAIL] $id: $desc (expected=$expected, got=$actual, resp=${5:-$actual})"
+        echo "[失败] $id: $desc (期望=$expected, 实际=$actual, 响应=${5:-$actual})"
     fi
 }
 
@@ -28,10 +28,10 @@ assert_contains() {
     TOTAL=$((TOTAL + 1))
     if echo "$response" | grep -q "$keyword"; then
         PASS_COUNT=$((PASS_COUNT + 1))
-        echo "[PASS] $id: $desc (found '$keyword')"
+        echo "[通过] $id: $desc (找到 '$keyword')"
     else
         FAIL_COUNT=$((FAIL_COUNT + 1))
-        echo "[FAIL] $id: $desc (expected '$keyword' in response)"
+        echo "[失败] $id: $desc (期望在响应中找到 '$keyword')"
     fi
 }
 
@@ -40,10 +40,10 @@ assert_not_contains() {
     TOTAL=$((TOTAL + 1))
     if ! echo "$response" | grep -q "$keyword"; then
         PASS_COUNT=$((PASS_COUNT + 1))
-        echo "[PASS] $id: $desc ('$keyword' not present)"
+        echo "[通过] $id: $desc ('$keyword' 未出现)"
     else
         FAIL_COUNT=$((FAIL_COUNT + 1))
-        echo "[FAIL] $id: $desc ('$keyword' should not be in response)"
+        echo "[失败] $id: $desc ('$keyword' 不应出现在响应中)"
     fi
 }
 
@@ -51,20 +51,20 @@ extract_code() {
     echo "$1" | grep -o '"code":[0-9]*' | head -1 | cut -d: -f2
 }
 
-# ============ Step 0: Health Check & Login (with retry) ============
-echo "=== Step 0: Health Check & Login ==="
+# ============ 第0步：健康检查与登录 ============
+echo "=== 第0步：健康检查与登录 ==="
 for attempt in 1 2 3 4 5; do
     HEALTH=$(curl -s "$BASE/api/health")
     HC=$(extract_code "$HEALTH")
     if [ "$HC" = "0" ]; then
-        echo "[PASS] HEALTH: Health check (attempt $attempt)"
+        echo "[通过] 健康检查通过 (第$attempt次尝试)"
         break
     fi
-    echo "Health check attempt $attempt failed, retrying..."
+    echo "健康检查第$attempt次失败，重试中..."
     sleep 1
 done
 
-# Login with retry
+# 登录重试
 for attempt in 1 2 3 4 5; do
     LOGIN_RESP=$(curl -s -X POST "$BASE/api/auth/login" \
         -H "Content-Type: application/json" \
@@ -73,35 +73,35 @@ for attempt in 1 2 3 4 5; do
     if [ "$LC" = "0" ]; then
         break
     fi
-    echo "Login attempt $attempt failed (code=$LC), retrying..."
+    echo "登录第$attempt次失败 (返回码=$LC)，重试中..."
     sleep 1
 done
-assert_code "AUTH-04" "Normal login (attempt $attempt)" "0" "$LC"
+assert_code "AUTH-04" "正常登录 (第$attempt次)" "0" "$LC"
 
 TOKEN=$(echo "$LOGIN_RESP" | grep -o '"token":"[^"]*"' | head -1 | cut -d'"' -f4)
 if [ -z "$TOKEN" ]; then
-    echo "[FATAL] Cannot get token, aborting"
+    echo "[致命错误] 无法获取Token，终止测试"
     exit 1
 fi
 AUTHH="Authorization: Bearer $TOKEN"
 echo "Token: ${TOKEN:0:30}..."
 
-# Get category IDs
+# 获取分类ID
 EXP_CAT=$(curl -s "$BASE/api/categories?type=EXPENSE" -H "$AUTHH")
 EXP_CAT_ID=$(echo "$EXP_CAT" | grep -o '"id":[0-9]*' | head -1 | cut -d: -f2)
-echo "Expense category ID: $EXP_CAT_ID"
+echo "支出分类ID: $EXP_CAT_ID"
 
 INC_CAT=$(curl -s "$BASE/api/categories?type=INCOME" -H "$AUTHH")
 INC_CAT_ID=$(echo "$INC_CAT" | grep -o '"id":[0-9]*' | head -1 | cut -d: -f2)
-echo "Income category ID: $INC_CAT_ID"
+echo "收入分类ID: $INC_CAT_ID"
 
 if [ -z "$EXP_CAT_ID" ] || [ -z "$INC_CAT_ID" ]; then
-    echo "[WARN] Category IDs not found, some tests will be skipped"
+    echo "[警告] 未找到分类ID，部分测试将被跳过"
 fi
 
 echo ""
 echo "========================================================================"
-echo "===================== 1. AUTH MODULE (25 cases) ========================"
+echo "===================== 1. 认证模块 (25个用例) ============================"
 echo "========================================================================"
 
 # --- Black-box Positive ---
@@ -227,7 +227,7 @@ assert_code "AUTH-WB-15" "Bad token format" "401" "$(extract_code "$R")"
 
 echo ""
 echo "========================================================================"
-echo "===================== 2. USER MODULE (20 cases) ========================"
+echo "===================== 2. 用户模块 (20个用例) ============================"
 echo "========================================================================"
 
 R=$(curl -s "$BASE/api/user/profile" -H "$AUTHH")
@@ -270,7 +270,7 @@ fi
 
 echo ""
 echo "========================================================================"
-echo "==================== 3. CATEGORY MODULE (20 cases) ====================="
+echo "==================== 3. 分类模块 (20个用例) ============================="
 echo "========================================================================"
 
 R=$(curl -s "$BASE/api/categories?type=EXPENSE" -H "$AUTHH")
@@ -320,7 +320,7 @@ assert_code "CAT-BN-03" "Delete non-existent" "404" "$(extract_code "$R")"
 
 echo ""
 echo "========================================================================"
-echo "===================== 4. BILL MODULE (40 cases) ========================"
+echo "===================== 4. 账单模块 (40个用例) ============================"
 echo "========================================================================"
 
 if [ -z "$EXP_CAT_ID" ]; then EXP_CAT_ID=1; fi
@@ -432,7 +432,7 @@ assert_code "BILL-BN-06" "Delete non-existent bill" "404" "$(extract_code "$R")"
 
 echo ""
 echo "========================================================================"
-echo "================== 9. FORGOT PASSWORD (10 cases) ======================="
+echo "================== 5. 忘记密码模块 (10个用例) ============================"
 echo "========================================================================"
 
 # Send SMS code for test user
@@ -497,7 +497,7 @@ assert_code "FP-10" "Original password still works" "0" "$(extract_code "$R")"
 
 echo ""
 echo "========================================================================"
-echo "============= 5. STATS (10 cases) + 6. BUDGET (25 cases) =============="
+echo "============= 6. 统计(10个用例) + 7. 预算(25个用例) =============="
 echo "========================================================================"
 
 R=$(curl -s "$BASE/api/bills/stats/month?month=2026-05" -H "$AUTHH")
@@ -541,12 +541,12 @@ assert_code "BUDG-BN-02" "Delete non-existent budget" "404" "$(extract_code "$R"
 
 echo ""
 echo "========================================================================"
-echo "============= 5. STATS (10 cases) + 6. BUDGET (25 cases) =============="
+echo "============= 6. 统计(10个用例) + 7. 预算(25个用例) =============="
 echo "========================================================================"
 
 echo ""
 echo "========================================================================"
-echo "============= 7. SECURITY (12) + 8. BOUNDARY (8) ======================"
+echo "============= 8. 安全(12个用例) + 9. 边界(8个用例) ==================="
 echo "========================================================================"
 
 R=$(curl -s -X POST "$BASE/api/auth/login" -H "Content-Type: application/json" \
@@ -630,17 +630,17 @@ fi
 
 echo ""
 echo "========================================================================"
-echo "======================= TEST SUMMARY =================================="
+echo "======================= 测试汇总 =================================="
 echo "========================================================================"
 echo ""
-echo "Total assertions: $TOTAL"
-echo "PASS: $PASS_COUNT"
-echo "FAIL: $FAIL_COUNT"
+echo "总测试用例数: $TOTAL"
+echo "通过: $PASS_COUNT"
+echo "失败: $FAIL_COUNT"
 if [ "$TOTAL" -gt 0 ]; then
     RATE=$((PASS_COUNT * 100 / TOTAL))
-    echo "Pass rate: ${RATE}%"
+    echo "通过率: ${RATE}%"
 fi
 echo ""
-echo "Note: All DTO fields use snake_case (@JsonProperty) to match frontend requests"
+echo "说明: 所有DTO字段使用下划线命名(@JsonProperty)，与前端请求一致"
 echo ""
-echo "========================== END TEST =================================="
+echo "========================== 测试结束 =================================="
