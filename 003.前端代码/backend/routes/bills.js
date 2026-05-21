@@ -1,7 +1,8 @@
 const express = require('express');
 const pool = require('../config/db');
 const { authMiddleware } = require('../middleware/auth');
-const logger = require('../utils/logger'); // 新增日志工具
+const logger = require('../utils/logger');
+const ExcelJS = require('exceljs');
 
 const router = express.Router();
 router.use(authMiddleware);
@@ -65,6 +66,73 @@ router.get('/', async (req, res) => {
     } catch (err) {
         logger.error('get bills error:', err);
         res.status(500).json({ code: 500, msg: '获取账单失败' });
+    }
+});
+
+// GET /api/bills/export — 导出账单（CSV/Excel）
+router.get('/export', async (req, res) => {
+    const { user } = req;
+    const format = req.query.format || 'csv';
+    const month = req.query.month;
+    const type = req.query.type;
+    const categoryId = req.query.category_id;
+    const keyword = req.query.keyword;
+    const startDate = req.query.start_date;
+    const endDate = req.query.end_date;
+
+    try {
+        const conditions = ['b.user_id = ?'];
+        const params = [user.id];
+
+        if (month) {
+            conditions.push('DATE_FORMAT(b.bill_time, "%Y-%m") = ?');
+            params.push(month);
+        }
+        if (type) {
+            conditions.push('b.type = ?');
+            params.push(type.toUpperCase());
+        }
+        if (categoryId) {
+            conditions.push('b.category_id = ?');
+            params.push(parseInt(categoryId));
+        }
+        if (keyword) {
+            conditions.push('b.remark LIKE ?');
+            params.push(`%${keyword}%`);
+        }
+        if (startDate) {
+            conditions.push('b.bill_time >= ?');
+            params.push(startDate);
+        }
+        if (endDate) {
+            conditions.push('b.bill_time <= ?');
+            params.push(endDate + ' 23:59:59');
+        }
+
+        const where = 'WHERE ' + conditions.join(' AND ');
+        const [rows] = await pool.query(
+            `SELECT b.bill_time, b.type, c.name AS category_name, b.amount, b.remark, b.created_at
+             FROM bill b LEFT JOIN category c ON b.category_id = c.id
+             ${where}
+             ORDER BY b.bill_time DESC
+             LIMIT 50001`,
+            params
+        );
+
+        if (rows.length > 50000) {
+            return res.status(400).json({ code: 400, msg: '导出数据超过 50000 行限制，请缩小筛选范围' });
+        }
+
+        const filename = buildExportFilename(month, startDate, endDate, format);
+
+        if (format === 'xlsx') {
+            await writeExcel(rows, filename, res);
+        } else {
+            writeCsv(rows, filename, res);
+        }
+    } catch (err) {
+        logger.error('export bills error:', err);
+        res.status(500).json({ code: 500, msg: '导出失败' });
     }
 });
 
@@ -254,5 +322,106 @@ router.get('/stats/month', async (req, res) => {
         res.status(500).json({ code: 500, msg: '获取统计失败' });
     }
 });
+
+const HEADERS = ['账单时间', '类型', '分类', '金额', '备注', '创建时间'];
+
+function buildExportFilename(month, startDate, endDate, format) {
+    let base;
+    if (month) {
+        base = `bills_${month}`;
+    } else if (startDate && endDate) {
+        base = `bills_${startDate}_to_${endDate}`;
+    } else {
+        const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+        base = `bills_all_${today}`;
+    }
+    return `${base}.${format}`;
+}
+
+function formatTime(time) {
+    if (!time) return '';
+    if (time instanceof Date) {
+        return time.toISOString().replace('T', ' ').slice(0, 19);
+    }
+    const d = new Date(time);
+    if (isNaN(d.getTime())) return String(time);
+    return d.toISOString().replace('T', ' ').slice(0, 19);
+}
+
+function formatType(type) {
+    if (type === 'EXPENSE') return '支出';
+    if (type === 'INCOME') return '收入';
+    return type || '';
+}
+
+function formatAmount(amount) {
+    if (amount == null) return '0.00';
+    return Number(amount).toFixed(2);
+}
+
+function escapeCsv(value) {
+    if (value == null || value === 'null') return '';
+    const s = String(value);
+    if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+        return `"${s.replace(/"/g, '""')}"`;
+    }
+    return s;
+}
+
+function writeCsv(rows, filename, res) {
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+    const bom = '﻿';
+    const headerLine = HEADERS.join(',');
+    res.write(bom + headerLine + '\n');
+
+    for (const row of rows) {
+        const cells = [
+            formatTime(row.bill_time),
+            formatType(row.type),
+            escapeCsv(row.category_name),
+            formatAmount(row.amount),
+            escapeCsv(row.remark),
+            formatTime(row.created_at)
+        ];
+        res.write(cells.join(',') + '\n');
+    }
+    res.end();
+}
+
+async function writeExcel(rows, filename, res) {
+    const wb = new ExcelJS.Workbook();
+    const sheet = wb.addWorksheet('账单');
+
+    // Header
+    const headerRow = sheet.addRow(HEADERS);
+    headerRow.eachCell((cell) => {
+        cell.font = { bold: true };
+    });
+
+    // Amount column format
+    const amountCol = 4;
+
+    for (const row of rows) {
+        sheet.addRow([
+            formatTime(row.bill_time),
+            formatType(row.type),
+            row.category_name || '',
+            Number(row.amount || 0),
+            row.remark || '',
+            formatTime(row.created_at)
+        ]);
+        const lastRow = sheet.lastRow;
+        if (lastRow) {
+            lastRow.getCell(amountCol).numFmt = '#,##0.00';
+        }
+    }
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    await wb.xlsx.write(res);
+    res.end();
+}
 
 module.exports = router;

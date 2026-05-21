@@ -177,6 +177,7 @@ var API_BASE = 'http://localhost:8080';
 | POST | `/api/auth/send-sms-code` | 发送短信验证码（忘记密码用） |
 | POST | `/api/auth/reset-password` | 重置密码（需手机 + 短信验证码） |
 | GET | `/api/bills` | 账单列表，支持 `month`、`keyword`（备注关键词模糊搜索）、`page`、`pageSize`、`category_id`、`type` 筛选 |
+| GET | `/api/bills/export` | 导出账单（CSV/Excel），支持 `format=csv|xlsx`、`month`、`start_date`、`end_date`、`type`、`keyword`、`category_id` 筛选，单次最多 50,000 行 |
 | GET | `/api/bills/stats/month` | 月度统计 + 日趋势 + 分类排行 |
 | GET | `/api/budgets/dashboard` | 预算进度仪表盘 |
 | GET | `/api/categories?type=expense` | 分类列表 |

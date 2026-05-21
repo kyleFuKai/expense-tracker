@@ -3,9 +3,11 @@ package com.xingzhewk.controller;
 import com.xingzhewk.common.Result;
 import com.xingzhewk.common.Constants;
 import com.xingzhewk.dto.BillDTO;
+import com.xingzhewk.service.BillExportService;
 import com.xingzhewk.service.BillService;
 import com.xingzhewk.vo.BillStatsVO;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -17,10 +19,32 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping("/api/bills")
-@RequiredArgsConstructor
 public class BillController {
 
     private final BillService billService;
+    private final BillExportService billExportService;
+
+    public BillController(BillService billService, BillExportService billExportService) {
+        this.billService = billService;
+        this.billExportService = billExportService;
+    }
+
+    /**
+     * 导出账单数据（CSV/Excel）
+     */
+    @GetMapping("/export")
+    public void export(HttpServletRequest request,
+                       @RequestParam(required = false, defaultValue = "csv") String format,
+                       @RequestParam(required = false) String month,
+                       @RequestParam(required = false) String type,
+                       @RequestParam(required = false) Long category_id,
+                       @RequestParam(required = false) String keyword,
+                       @RequestParam(required = false) String start_date,
+                       @RequestParam(required = false) String end_date,
+                       HttpServletResponse response) {
+        Long userId = (Long) request.getAttribute("userId");
+        billExportService.exportBills(userId, format, month, type, category_id, keyword, start_date, end_date, response);
+    }
 
     /**
      * 获取账单列表（分页）
