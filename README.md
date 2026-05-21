@@ -4,7 +4,8 @@
 
 ## 功能特性
 
-- **用户认证** — 手机号注册/登录，JWT Token 认证（7天有效期），bcryptjs 密码加密
+- **用户认证** — 手机号注册/登录，JWT Token 认证（7天有效期），bcryptjs 密码加密；密码需包含大小写字母、数字和特殊字符，6-20位
+- **安全机制** — 登录/注册频率限制（10次/15分钟），密码复杂度校验，错误提示防信息泄露
 - **账单管理** — 记录收入/支出，支持分类、金额、备注；无限滚动分页加载（每页 10 条）
 - **分类管理** — 内置 16 个预设收支分类（带图标），支持归档空分类
 - **预算管理** — 月度总预算 + 分项预算，进度仪表盘实时追踪
@@ -19,6 +20,7 @@
 | 后端 | Node.js 22 + Express 4 |
 | 数据库 | MySQL 8.0 |
 | 认证 | JWT (jsonwebtoken) + bcryptjs |
+| 安全 | express-rate-limit（频率限制）、密码复杂度校验 |
 | 文件上传 | Multer（头像，2MB 图片限制） |
 
 ## 项目结构
@@ -29,6 +31,7 @@
 ├── 002.产品UI原型(美术设计)/        # UI原型与设计资源
 ├── 003.前端代码/
 │   ├── backend/                    # Express 后端服务
+│   │   ├── .env.example            # 环境变量模板
 │   │   ├── app.js                  # 入口文件，挂载路由和静态资源
 │   │   ├── config/db.js            # MySQL 连接池
 │   │   ├── middleware/auth.js      # JWT 验证中间件
@@ -73,11 +76,15 @@ cd 003.前端代码/backend
 # 安装依赖
 npm install
 
+# 复制并配置环境变量
+cp .env.example .env
+# 编辑 .env 填写数据库连接信息和 JWT 密钥
+
 # 初始化数据库（按顺序执行 SQL 脚本）
 # mysql -u root -p < ../004.数据库脚本(DBA)/001_schema_ddl.sql
 # mysql -u root -p < ../004.数据库脚本(DBA)/002_seed_data.sql
 
-# 编辑 config/db.js 配置数据库连接信息，然后启动
+# 启动服务
 npm start
 ```
 
@@ -98,7 +105,7 @@ npm start
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| POST | `/api/auth/register` | 手机号注册 |
+| POST | `/api/auth/register` | 手机号注册（密码需大小写字母+数字+特殊字符） |
 | POST | `/api/auth/login` | 登录，返回 JWT Token |
 | GET | `/api/bills` | 账单列表，支持 `month`、`page`、`pageSize`、`category_id`、`type` 筛选 |
 | GET | `/api/bills/stats/month` | 月度统计 + 日趋势 + 分类排行 |
