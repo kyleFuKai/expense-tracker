@@ -738,13 +738,21 @@ public Result<?> list(...)
 
 ## 11. 单元测试规范
 
-### 11.1 测试原则
+### 11.1 测试框架选择
+
+- **Java 后端统一使用 JUnit 5 + Mockito**，通过 `@SpringBootTest` 启动完整应用上下文
+- Controller 层测试使用 `MockMvc` 模拟 HTTP 请求
+- Service 层测试可直接注入 Bean，使用 `@Transactional` + `@Rollback` 保证测试后数据库干净
+- 禁止使用 shell 脚本（curl）作为 Java 后端的主要测试方式，shell 脚本仅作为临时验证或 Node.js 端测试
+- 运行方式：`mvn test`
+
+### 11.2 测试原则
 
 - 测试 Service 层业务逻辑，不测试简单 CRUD
 - 一个测试方法只验证一个行为
 - 遵循 Arrange-Act-Assert（AAA）结构
 
-### 11.2 测试命名
+### 11.3 测试命名
 
 ```java
 @Test
@@ -757,11 +765,48 @@ void testCreateOrder_withValidData_returnsSuccess() {
 
 格式：`test{方法名}_{场景}_{期望结果}`
 
-### 11.3 Mock 规范
+### 11.4 Mock 规范
 
 - 使用 `@MockBean` 模拟依赖
 - 使用 `@ExtendWith(MockitoExtension.class)` 开启 Mockito 扩展
 - 禁止 Mock 自己写的类，只 Mock 外部依赖（第三方 SDK、远程服务）
+
+### 11.5 测试示例
+
+```java
+@SpringBootTest
+@AutoConfigureMockMvc
+class BillExportControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    @Test
+    void testExportCsv_withAuth_returnsCsvFile() throws Exception {
+        String token = jwtUtil.generateToken(1L, "13800138000");
+
+        mockMvc.perform(get("/api/bills/export")
+                .param("format", "csv")
+                .header("Authorization", "Bearer " + token))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType("text/csv; charset=utf-8"))
+            .andExpect(result -> {
+                String content = result.getResponse().getContentAsString();
+                assertTrue(content.contains("账单时间"));
+            });
+    }
+
+    @Test
+    void testExport_withoutAuth_returns401() throws Exception {
+        mockMvc.perform(get("/api/bills/export")
+                .param("format", "csv"))
+            .andExpect(status().isUnauthorized());
+    }
+}
+```
 
 ---
 
