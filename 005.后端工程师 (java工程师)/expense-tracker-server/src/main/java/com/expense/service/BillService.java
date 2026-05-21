@@ -19,11 +19,12 @@ public interface BillService {
      * @param month      月份筛选（yyyy-MM），为空则查询全部
      * @param categoryId 分类 ID 筛选
      * @param type       账单类型筛选（EXPENSE/INCOME）
+     * @param keyword    备注关键词搜索（模糊匹配）
      * @param page       页码（从 1 开始）
      * @param pageSize   每页条数（最大 100）
      * @return {list: [...], total: N, page: 1, pageSize: 50}
      */
-    Result<?> list(Long userId, String month, Long categoryId, String type, int page, int pageSize);
+    Result<?> list(Long userId, String month, Long categoryId, String type, String keyword, int page, int pageSize);
 
     /**
      * 获取账单详情

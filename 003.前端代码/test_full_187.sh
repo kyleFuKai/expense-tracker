@@ -455,6 +455,23 @@ assert_code "BILL-09" "Filter by month" "0" "$(extract_code "$R")"
 R=$(curl -s "$BASE/api/bills?category_id=$EXP_CAT_ID" -H "$AUTHH")
 assert_code "BILL-10" "Filter by category" "0" "$(extract_code "$R")"
 
+# BILL-12/13: Keyword search
+R=$(curl -s -X POST "$BASE/api/bills" -H "$AUTHH" -H "Content-Type: application/json" \
+    -d '{"type":"EXPENSE","amount":15,"category_id":'"$EXP_CAT_ID"',"remark":"lunch mcdonalds test"}')
+SEARCH_BILL_ID=$(echo "$R" | grep -o '"id":[0-9]*' | head -1 | cut -d: -f2)
+R=$(curl -s --get "$BASE/api/bills" -H "$AUTHH" --data-urlencode "keyword=mcdonalds")
+assert_code "BILL-12" "Keyword search match" "0" "$(extract_code "$R")"
+assert_contains "BILL-13" "Keyword search returns matching remark" "mcdonalds" "$R"
+
+# BILL-14: Keyword search no match
+R=$(curl -s --get "$BASE/api/bills" -H "$AUTHH" --data-urlencode "keyword=NOTFOUND_XYZ_KEYWORD")
+assert_code "BILL-14" "Keyword search no match" "0" "$(extract_code "$R")"
+assert_contains "BILL-15" "Keyword no match returns empty list" '"total":0' "$R"
+
+# BILL-16: Keyword + month combined
+R=$(curl -s --get "$BASE/api/bills" -H "$AUTHH" --data-urlencode "keyword=mcdonalds" --data-urlencode "month=2026-05")
+assert_code "BILL-16" "Keyword + month combined" "0" "$(extract_code "$R")"
+
 R=$(curl -s -X POST "$BASE/api/bills" -H "$AUTHH" -H "Content-Type: application/json" \
     -d '{"type":"INCOME","amount":5000,"category_id":'"$INC_CAT_ID"',"remark":"Salary"}')
 assert_code "BILL-11" "Create income bill" "0" "$(extract_code "$R")"

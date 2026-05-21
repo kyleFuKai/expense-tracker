@@ -12,6 +12,7 @@ router.get('/', async (req, res) => {
     const month = req.query.month; // 格式: 2026-05
     const categoryId = req.query.category_id;
     const type = req.query.type; // expense / income
+    const keyword = req.query.keyword; // 备注关键词搜索
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const pageSize = Math.max(1, Math.min(100, parseInt(req.query.pageSize) || 50));
 
@@ -30,6 +31,10 @@ router.get('/', async (req, res) => {
         if (type) {
             conditions.push('type = ?');
             params.push(type.toUpperCase());
+        }
+        if (keyword) {
+            conditions.push('remark LIKE ?');
+            params.push(`%${keyword}%`);
         }
 
         const where = 'WHERE ' + conditions.join(' AND ');

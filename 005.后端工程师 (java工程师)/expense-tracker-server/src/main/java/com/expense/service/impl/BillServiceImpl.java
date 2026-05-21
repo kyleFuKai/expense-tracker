@@ -31,7 +31,7 @@ public class BillServiceImpl implements BillService {
     private final BillMapper billMapper;
 
     @Override
-    public Result<?> list(Long userId, String month, Long categoryId, String type, int page, int pageSize) {
+    public Result<?> list(Long userId, String month, Long categoryId, String type, String keyword, int page, int pageSize) {
         LambdaQueryWrapper<Bill> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Bill::getUserId, userId);
 
@@ -45,6 +45,9 @@ public class BillServiceImpl implements BillService {
         }
         if (StringUtils.hasText(type)) {
             wrapper.eq(Bill::getType, type.toUpperCase());
+        }
+        if (StringUtils.hasText(keyword)) {
+            wrapper.like(Bill::getRemark, keyword);
         }
 
         wrapper.orderByDesc(Bill::getBillTime);

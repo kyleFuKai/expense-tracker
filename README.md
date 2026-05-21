@@ -176,7 +176,7 @@ var API_BASE = 'http://localhost:8080';
 | POST | `/api/auth/login` | 登录，返回 JWT Token |
 | POST | `/api/auth/send-sms-code` | 发送短信验证码（忘记密码用） |
 | POST | `/api/auth/reset-password` | 重置密码（需手机 + 短信验证码） |
-| GET | `/api/bills` | 账单列表，支持 `month`、`page`、`pageSize`、`category_id`、`type` 筛选 |
+| GET | `/api/bills` | 账单列表，支持 `month`、`keyword`（备注关键词模糊搜索）、`page`、`pageSize`、`category_id`、`type` 筛选 |
 | GET | `/api/bills/stats/month` | 月度统计 + 日趋势 + 分类排行 |
 | GET | `/api/budgets/dashboard` | 预算进度仪表盘 |
 | GET | `/api/categories?type=expense` | 分类列表 |

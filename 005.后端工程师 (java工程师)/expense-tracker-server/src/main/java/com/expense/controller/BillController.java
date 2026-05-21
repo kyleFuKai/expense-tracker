@@ -28,6 +28,7 @@ public class BillController {
      * @param month       月份筛选（yyyy-MM），为空则查询全部
      * @param category_id 分类 ID 筛选
      * @param type        账单类型，可选：EXPENSE（支出）、INCOME（收入），为空则查询全部
+     * @param keyword     备注关键词搜索（模糊匹配）
      * @param page        页码，从 1 开始，默认 1
      * @param pageSize    每页条数，默认 50，最大 100
      * @return {list: [...], total: N, page: 1, pageSize: 50}
@@ -37,11 +38,12 @@ public class BillController {
                           @RequestParam(required = false) String month,
                           @RequestParam(required = false) Long category_id,
                           @RequestParam(required = false) String type,
+                          @RequestParam(required = false) String keyword,
                           @RequestParam(defaultValue = "1") int page,
                           @RequestParam(defaultValue = "50") int pageSize) {
         Long userId = (Long) request.getAttribute("userId");
         pageSize = Math.max(1, Math.min(Constants.MAX_PAGE_SIZE, pageSize));
-        return billService.list(userId, month, category_id, type, page, pageSize);
+        return billService.list(userId, month, category_id, type, keyword, page, pageSize);
     }
 
     /**
