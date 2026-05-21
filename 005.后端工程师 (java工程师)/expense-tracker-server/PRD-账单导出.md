@@ -103,10 +103,14 @@ Content-Disposition: attachment; filename="bills_2026-05.csv"
 
 ## 5. 测试用例
 
+### 5.1 Java 后端（JUnit 单元测试）
+
+使用 `@SpringBootTest` + `MockMvc` 编写测试类，测试文件位于 `src/test/java/com/xingzhewk/`。
+
 | 用例 | 说明 | 期望 |
 |------|------|------|
-| EXPORT-01 | 导出当月账单 CSV | 下载成功，文件包含当月所有账单 |
-| EXPORT-02 | 导出当月账单 Excel | 下载成功，表头加粗，金额格式化 |
+| EXPORT-01 | 导出当月账单 CSV | 返回码 200，Content-Type 为 text/csv，内容含表头"账单时间" |
+| EXPORT-02 | 导出当月账单 Excel | 返回码 200，Content-Type 为 xlsx，文件大小 > 100 bytes |
 | EXPORT-03 | 导出指定月份 | 仅返回该月份数据 |
 | EXPORT-04 | 按类型筛选导出 | 仅返回 EXPENSE 或 INCOME |
 | EXPORT-05 | 空数据导出 | 文件包含表头，无数据行 |
@@ -116,11 +120,17 @@ Content-Disposition: attachment; filename="bills_2026-05.csv"
 | EXPORT-09 | 中文备注 CSV | Excel 打开不乱码（BOM 生效） |
 | EXPORT-10 | 已删除分类的账单 | 分类列为空，不报错 |
 
+### 5.2 Node.js 后端（Shell 脚本 + curl）
+
+复用现有 `test_full_187.sh` 脚本风格，新增导出相关用例，用 curl 请求 + JSON 断言。
+
 ## 6. 实施步骤
 
 1. Java 后端：添加 POI 依赖 → 新增 Mapper 方法 → 新增 Service → 新增 Controller 端点
 2. Node.js 后端：安装 exceljs → 新增 export 路由
 3. 前端：创建 export-bills.html → 修改 settings.html 入口
-4. 测试：两个后端分别运行导出测试
+4. 测试：
+   - Java：编写 JUnit 单元测试（`@SpringBootTest` + `MockMvc`），运行 `mvn test`
+   - Node.js：shell 脚本 curl 测试
 5. 文档：更新 README API 表
 6. 提交：按规范提交代码
