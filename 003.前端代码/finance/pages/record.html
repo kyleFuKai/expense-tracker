@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>快速记账 - 每日财务管家</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+    <link href="../assets/css/base.css" rel="stylesheet">
+    <script src="../assets/js/auth.js"></script>
+    <script>Auth.check();</script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-error": "#ffffff", "error-container": "#ffdad6",
+                        "tertiary-fixed-dim": "#ffb95f", "on-secondary-fixed-variant": "#005236",
+                        "tertiary": "#784b00", "surface-container-low": "#eff4ff",
+                        "secondary": "#006c49", "secondary-fixed": "#6ffbbe",
+                        "outline": "#737686", "on-surface": "#0b1c30",
+                        "inverse-primary": "#b4c5ff", "secondary-fixed-dim": "#4edea3",
+                        "on-tertiary-fixed": "#2a1700", "surface-container": "#e5eeff",
+                        "on-primary-fixed": "#00174b", "surface-container-lowest": "#ffffff",
+                        "tertiary-fixed": "#ffddb8", "on-error-container": "#93000a",
+                        "outline-variant": "#c3c6d7", "on-secondary-fixed": "#002113",
+                        "bg-light": "#F8FAFC", "on-primary": "#ffffff",
+                        "surface-bright": "#f8f9ff", "success-growth": "#10B981",
+                        "danger-expense": "#EF4444", "inverse-on-surface": "#eaf1ff",
+                        "inverse-surface": "#213145", "on-background": "#0b1c30",
+                        "tertiary-container": "#996100", "surface-container-high": "#dce9ff",
+                        "on-tertiary-container": "#ffeedd", "error": "#ba1a1a",
+                        "primary": "#004ac6", "on-tertiary-fixed-variant": "#653e00",
+                        "secondary-container": "#6cf8bb", "on-primary-container": "#eeefff",
+                        "background": "#f8f9ff", "surface-tint": "#0053db",
+                        "surface-dark": "#1E293B", "primary-container": "#2563eb",
+                        "on-tertiary": "#ffffff", "on-secondary": "#ffffff",
+                        "bg-dark": "#0F172A", "surface-container-highest": "#d3e4fe",
+                        "primary-fixed-dim": "#b4c5ff", "surface-variant": "#d3e4fe",
+                        "on-secondary-container": "#00714d", "on-surface-variant": "#434655",
+                        "warning-alert": "#F59E0B", "primary-fixed": "#dbe1ff",
+                        "on-primary-fixed-variant": "#003ea8", "surface": "#f8f9ff",
+                        "surface-dim": "#cbdbf5"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "12px", "base-unit": "4px", "container-margin": "16px",
+                        "touch-target-min": "44px", "card-padding": "20px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"], "body-sm": ["Inter"], "body-lg": ["Inter"],
+                        "display-hero-mobile": ["Inter"], "display-hero": ["Inter"],
+                        "label-caps": ["Inter"], "numeric-data": ["Inter"],
+                        "headline-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "26px", "fontWeight": "400"}],
+                        "display-hero-mobile": ["28px", {"lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "display-hero": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "numeric-data": ["20px", {"lineHeight": "24px", "fontWeight": "500"}],
+                        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        .numeric-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr) 80px;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen flex flex-col items-center">
+
+    <!-- ==================== 顶部导航栏 ==================== -->
+    <header class="sticky top-0 z-40 flex justify-between items-center px-container-margin py-3 w-full max-w-7xl mx-auto bg-surface/90 backdrop-blur-md border-b border-outline-variant/20 shadow-sm">
+        <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary">account_balance_wallet</span>
+            <h1 class="text-headline-md font-headline-md font-bold text-primary tracking-tight">快速记账</h1>
+        </div>
+        <div class="flex items-center gap-4">
+            <button id="btn-calendar" class="p-2 rounded-full hover:bg-surface-container-high transition-colors duration-200">
+                <span class="material-symbols-outlined text-on-surface-variant">calendar_today</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- ==================== 主内容区 ==================== -->
+    <main class="w-full max-w-2xl mx-auto px-4 pt-6 pb-24 flex flex-col gap-6">
+
+        <!-- 类型切换 + 金额输入区 -->
+        <div class="bg-white rounded-xl shadow-sm p-card-padding flex flex-col gap-4">
+            <!-- 类型切换 Tab -->
+            <div class="flex p-1 bg-surface-container rounded-lg">
+                <button id="tab-expense" class="flex-1 py-2 text-label-caps font-label-caps bg-white text-danger-expense shadow-sm rounded-md transition-all">支出</button>
+                <button id="tab-income" class="flex-1 py-2 text-label-caps font-label-caps text-on-surface-variant hover:text-secondary transition-all">收入</button>
+            </div>
+            <!-- 金额输入行 -->
+            <div class="flex justify-between items-end border-b border-outline-variant pb-2">
+                <div class="flex flex-col">
+                    <span id="amount-label" class="text-label-caps font-label-caps text-danger-expense uppercase tracking-wider">支出金额</span>
+                    <div class="flex items-center gap-1 cursor-pointer">
+                        <span class="text-headline-md font-headline-md text-on-surface-variant">¥</span>
+                        <input id="amount-input" class="w-full bg-transparent border-none focus:ring-0 text-display-hero-mobile font-display-hero-mobile text-primary placeholder:text-outline-variant p-0" placeholder="0.00" type="tel" readonly>
+                    </div>
+                </div>
+                <!-- 时间标签 -->
+                <div id="time-label" class="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-label-caps font-label-caps flex items-center gap-1 cursor-pointer" onclick="window.showDatePicker()">
+                    <span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">schedule</span>现在
+                </div>
+            </div>
+
+            <!-- 分类选择网格（动态渲染） -->
+            <div id="category-grid" class="grid grid-cols-4 gap-y-6 pt-4">
+                <div class="col-span-4 flex items-center justify-center py-8 text-on-surface-variant">
+                    <span class="material-symbols-outlined animate-spin mr-2">progress_activity</span>
+                    加载分类中...
+                </div>
+            </div>
+        </div>
+
+        <!-- 备注输入区 -->
+        <div class="space-y-4">
+            <div id="other-remark-tip" class="hidden bg-primary/10 border border-primary/20 rounded-lg p-3 flex items-start gap-2">
+                <span class="material-symbols-outlined text-primary text-[20px] mt-0.5">note</span>
+                <p class="text-body-sm text-on-surface-variant">选择其他支出，建议填写备注说明消费用途。</p>
+            </div>
+            <div class="relative">
+                <span class="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline">edit_note</span>
+                <input id="remark-input" class="w-full h-11 pl-11 pr-4 bg-white border border-outline-variant/30 rounded-lg focus:border-primary focus:ring-1 focus:ring-primary/20 text-body-md font-body-md" placeholder="添加备注..." type="text">
+            </div>
+        </div>
+    </main>
+
+    <!-- ==================== 自定义数字键盘（底部弹出） ==================== -->
+    <div id="keyboard-overlay" class="fixed inset-0 z-[55] hidden items-end justify-center bg-black/30" onclick="hideKeyboard()">
+        <div class="w-full max-w-2xl bg-surface-container-low" onclick="event.stopPropagation()">
+            <div class="px-container-margin pt-3 pb-1 flex justify-between items-center">
+                <button id="key-cancel" class="text-body-sm font-body-sm text-on-surface-variant hover:text-on-surface px-3 py-1" onclick="hideKeyboard()">取消</button>
+                <span id="keyboard-amount-display" class="text-headline-md font-headline-md text-primary"></span>
+            </div>
+            <div class="px-2 pb-2 grid grid-cols-4 gap-2">
+                <button class="key-btn h-14 bg-white rounded-lg flex items-center justify-center text-headline-md font-headline-md text-on-surface hover:bg-surface-container-high transition-colors">1</button>
+                <button class="key-btn h-14 bg-white rounded-lg flex items-center justify-center text-headline-md font-headline-md text-on-surface hover:bg-surface-container-high transition-colors">2</button>
+                <button class="key-btn h-14 bg-white rounded-lg flex items-center justify-center text-headline-md font-headline-md text-on-surface hover:bg-surface-container-high transition-colors">3</button>
+                <button id="key-backspace" class="h-14 bg-white rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors">
+                    <span class="material-symbols-outlined">backspace</span>
+                </button>
+                <button class="key-btn h-14 bg-white rounded-lg flex items-center justify-center text-headline-md font-headline-md text-on-surface hover:bg-surface-container-high transition-colors">4</button>
+                <button class="key-btn h-14 bg-white rounded-lg flex items-center justify-center text-headline-md font-headline-md text-on-surface hover:bg-surface-container-high transition-colors">5</button>
+                <button class="key-btn h-14 bg-white rounded-lg flex items-center justify-center text-headline-md font-headline-md text-on-surface hover:bg-surface-container-high transition-colors">6</button>
+                <button id="key-save" class="h-14 bg-primary text-on-primary rounded-lg flex items-center justify-center row-span-3 text-body-lg font-body-lg font-bold hover:bg-primary-container active:scale-95 transition-all">保存</button>
+                <button class="key-btn h-14 bg-white rounded-lg flex items-center justify-center text-headline-md font-headline-md text-on-surface hover:bg-surface-container-high transition-colors">7</button>
+                <button class="key-btn h-14 bg-white rounded-lg flex items-center justify-center text-headline-md font-headline-md text-on-surface hover:bg-surface-container-high transition-colors">8</button>
+                <button class="key-btn h-14 bg-white rounded-lg flex items-center justify-center text-headline-md font-headline-md text-on-surface hover:bg-surface-container-high transition-colors">9</button>
+                <button class="key-btn h-14 bg-white rounded-lg flex items-center justify-center text-headline-md font-headline-md text-on-surface hover:bg-surface-container-high transition-colors">.</button>
+                <button class="key-btn h-14 bg-white rounded-lg flex items-center justify-center text-headline-md font-headline-md text-on-surface hover:bg-surface-container-high transition-colors col-span-2">0</button>
+                <div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 日期选择器（底部弹出） ==================== -->
+    <div id="date-overlay" class="fixed inset-0 z-[60] hidden items-end justify-center bg-black/30" onclick="hideDatePicker()">
+        <div class="w-full max-w-2xl bg-surface-container-low" onclick="event.stopPropagation()">
+            <div class="px-container-margin pt-4 pb-2 flex justify-between items-center">
+                <span class="text-body-md font-body-md font-semibold text-on-surface">选择日期</span>
+                <button class="text-body-sm font-body-sm text-primary" onclick="selectToday()">今天</button>
+            </div>
+            <div class="px-6 pb-4">
+                <input id="date-input" class="w-full h-12 bg-white border border-outline-variant/30 rounded-lg text-body-md font-body-md text-center text-on-surface focus:border-primary focus:ring-1 focus:ring-primary/20" type="date">
+            </div>
+            <div class="px-6 pb-6 flex gap-3">
+                <button class="flex-1 h-11 bg-white border border-outline-variant/30 rounded-lg text-body-md font-body-md text-on-surface hover:bg-surface-container-high transition-colors" onclick="hideDatePicker()">取消</button>
+                <button class="flex-1 h-11 bg-primary text-on-primary rounded-lg text-body-md font-body-md hover:bg-primary-container transition-colors" onclick="confirmDate()">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 底部导航栏 ==================== -->
+    <nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-safe pt-2 bg-surface/80 backdrop-blur-xl border-t border-outline-variant/10 shadow-[0_-4px_12px_0_rgba(0,0,0,0.05)] rounded-t-xl">
+        <div id="bottom-nav"></div>
+    </nav>
+    <script src="../assets/js/nav.js"></script>
+    <script>Nav.init('record');</script>
+
+    <script>
+    (function () {
+        'use strict';
+
+        // ===== 状态 =====
+        var currentType = 'EXPENSE'; // EXPENSE | INCOME
+        var selectedCategoryId = null;
+        var selectedCategoryName = '';
+        var amountStr = ''; // 用户输入的金额字符串
+        var editId = null; // 编辑模式下的账单 ID
+        var originalBillTime = ''; // 编辑模式下保留原始时间
+        var selectedDate = ''; // 用户选择的日期 (YYYY-MM-DD)
+
+        // ===== DOM =====
+        var amountInput = document.getElementById('amount-input');
+        var remarkInput = document.getElementById('remark-input');
+        var tabExpense = document.getElementById('tab-expense');
+        var tabIncome = document.getElementById('tab-income');
+        var amountLabel = document.getElementById('amount-label');
+        var categoryGrid = document.getElementById('category-grid');
+        var keySave = document.getElementById('key-save');
+
+        // ===== 数字键盘 =====
+        var keyBtns = document.querySelectorAll('.key-btn');
+        var backspaceBtn = document.getElementById('key-backspace');
+        var keyboardOverlay = document.getElementById('keyboard-overlay');
+        var keyboardAmountDisplay = document.getElementById('keyboard-amount-display');
+
+        function updateAmountDisplay() {
+            amountInput.value = amountStr || '';
+            keyboardAmountDisplay.textContent = (amountStr || '0.00');
+        }
+
+        function showKeyboard() {
+            keyboardOverlay.classList.remove('hidden');
+            keyboardOverlay.classList.add('flex');
+            updateAmountDisplay();
+        }
+
+        function hideKeyboard() {
+            keyboardOverlay.classList.add('hidden');
+            keyboardOverlay.classList.remove('flex');
+        }
+        window.hideKeyboard = hideKeyboard;
+
+        // ===== 日期选择器 =====
+        var dateOverlay = document.getElementById('date-overlay');
+        var dateInput = document.getElementById('date-input');
+
+        function showDatePicker() {
+            // 预填当前选择的日期或今天
+            if (selectedDate) {
+                dateInput.value = selectedDate;
+            } else if (originalBillTime) {
+                dateInput.value = originalBillTime.substring(0, 10);
+            } else {
+                dateInput.value = new Date().toISOString().slice(0, 10);
+            }
+            dateOverlay.classList.remove('hidden');
+            dateOverlay.classList.add('flex');
+            dateInput.focus();
+        }
+        window.showDatePicker = showDatePicker;
+
+        function hideDatePicker() {
+            dateOverlay.classList.add('hidden');
+            dateOverlay.classList.remove('flex');
+        }
+        window.hideDatePicker = hideDatePicker;
+
+        function selectToday() {
+            dateInput.value = new Date().toISOString().slice(0, 10);
+        }
+        window.selectToday = selectToday;
+
+        function confirmDate() {
+            var val = dateInput.value; // YYYY-MM-DD
+            if (!val) { hideDatePicker(); return; }
+            selectedDate = val;
+            // 更新时间标签显示
+            var parts = val.split('-');
+            var display = parts[0] + '/' + parts[1] + '/' + parts[2];
+            document.getElementById('time-label').innerHTML = '<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: \'FILL\' 1;">schedule</span>' + display;
+            hideDatePicker();
+        }
+        window.confirmDate = confirmDate;
+
+        // 日历按钮打开日期选择器
+        document.getElementById('btn-calendar').addEventListener('click', showDatePicker);
+
+        // 点击金额输入区域弹出键盘
+        document.querySelector('#amount-input').parentElement.addEventListener('click', function () {
+            showKeyboard();
+        });
+
+        keyBtns.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var val = btn.textContent.trim();
+                if (val === '.') {
+                    if (amountStr.indexOf('.') !== -1) return;
+                    if (amountStr === '') amountStr = '0';
+                } else if (amountStr === '0' && val !== '.') {
+                    amountStr = val;
+                } else {
+                    // 限制小数点后最多两位
+                    var dotIdx = amountStr.indexOf('.');
+                    if (dotIdx !== -1 && amountStr.length - dotIdx > 2) return;
+                    if (amountStr.length >= 12) return;
+                }
+                amountStr += val;
+                updateAmountDisplay();
+            });
+        });
+
+        backspaceBtn.addEventListener('click', function () {
+            amountStr = amountStr.slice(0, -1);
+            updateAmountDisplay();
+        });
+
+        // ===== 类型切换 =====
+        function setActiveType(type) {
+            currentType = type;
+            if (type === 'EXPENSE') {
+                tabExpense.className = 'flex-1 py-2 text-label-caps font-label-caps bg-white text-danger-expense shadow-sm rounded-md transition-all';
+                tabIncome.className = 'flex-1 py-2 text-label-caps font-label-caps text-on-surface-variant hover:text-secondary transition-all';
+                amountLabel.textContent = '支出金额';
+                amountLabel.className = 'text-label-caps font-label-caps text-danger-expense uppercase tracking-wider';
+                amountInput.style.color = '';
+            } else {
+                tabIncome.className = 'flex-1 py-2 text-label-caps font-label-caps bg-white text-success-growth shadow-sm rounded-md transition-all';
+                tabExpense.className = 'flex-1 py-2 text-label-caps font-label-caps text-on-surface-variant hover:text-danger-expense transition-all';
+                amountLabel.textContent = '收入金额';
+                amountLabel.className = 'text-label-caps font-label-caps text-success-growth uppercase tracking-wider';
+            }
+            loadCategories(type);
+        }
+
+        tabExpense.addEventListener('click', function () { setActiveType('EXPENSE'); });
+        tabIncome.addEventListener('click', function () { setActiveType('INCOME'); });
+
+        // ===== 加载分类 =====
+        function loadCategories(type) {
+            selectedCategoryId = null;
+            selectedCategoryName = '';
+            categoryGrid.innerHTML = '<div class="col-span-4 flex items-center justify-center py-8 text-on-surface-variant"><span class="material-symbols-outlined animate-spin mr-2">progress_activity</span>加载分类中...</div>';
+
+            Auth.fetchApi('/categories?type=' + type)
+            .then(function (result) {
+                if (result.code !== 0) {
+                    categoryGrid.innerHTML = '<div class="col-span-4 text-center text-on-surface-variant py-8">加载分类失败</div>';
+                    return;
+                }
+
+                var cats = result.data;
+                var html = '';
+                if (cats.length === 0) {
+                    html = '<div class="col-span-4 text-center text-on-surface-variant py-8">暂无分类</div>';
+                } else {
+                    cats.forEach(function (cat) {
+                        html += '<button class="cat-btn flex flex-col items-center gap-2 group" data-id="' + cat.id + '" data-name="' + cat.name + '" data-icon="' + (cat.icon || 'more_horiz') + '">';
+                        html += '<div class="w-12 h-12 rounded-full bg-surface-container text-on-surface-variant flex items-center justify-center group-hover:scale-105 transition-transform">';
+                        html += '<span class="material-symbols-outlined">' + (cat.icon || 'more_horiz') + '</span>';
+                        html += '</div>';
+                        html += '<span class="text-label-caps font-label-caps text-on-surface">' + cat.name + '</span>';
+                        html += '</button>';
+                    });
+                }
+                categoryGrid.innerHTML = html;
+
+                // 绑定分类点击事件
+                document.querySelectorAll('.cat-btn').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        // 取消之前的选中
+                        document.querySelectorAll('.cat-btn').forEach(function (b) {
+                            b.querySelector('div').className = 'w-12 h-12 rounded-full bg-surface-container text-on-surface-variant flex items-center justify-center group-hover:scale-105 transition-transform';
+                        });
+                        // 设置当前选中
+                        var icon = btn.getAttribute('data-icon');
+                        var color = getCategoryColor(icon);
+                        btn.querySelector('div').className = 'w-12 h-12 rounded-full ' + color + ' flex items-center justify-center transition-transform';
+                        selectedCategoryId = parseInt(btn.getAttribute('data-id'));
+                        selectedCategoryName = btn.getAttribute('data-name');
+
+                        // 其他支出：显示备注提示
+                        var tip = document.getElementById('other-remark-tip');
+                        if (selectedCategoryName === '其他支出') {
+                            tip.classList.remove('hidden');
+                        } else {
+                            tip.classList.add('hidden');
+                        }
+                    });
+                });
+            });
+        }
+
+        function getCategoryColor(icon) {
+            var colors = {
+                restaurant: 'bg-orange-100 text-orange-500',
+                directions_car: 'bg-blue-100 text-blue-500',
+                shopping_bag: 'bg-purple-100 text-purple-500',
+                movie: 'bg-red-100 text-red-500',
+                home: 'bg-indigo-100 text-indigo-500',
+                medical_services: 'bg-green-100 text-green-500',
+                school: 'bg-teal-100 text-teal-500',
+                group: 'bg-pink-100 text-pink-500',
+                payments: 'bg-green-100 text-green-600',
+                more_horiz: 'bg-gray-100 text-gray-500',
+                default: 'bg-primary/10 text-primary'
+            };
+            return colors[icon] || colors.default;
+        }
+
+        // ===== 保存账单 =====
+        keySave.addEventListener('click', function () {
+            var amount = parseFloat(amountStr);
+            if (!amount || amount <= 0) {
+                showToast('请输入金额');
+                return;
+            }
+            if (!selectedCategoryId) {
+                showToast('请选择分类');
+                return;
+            }
+
+            var billTime = selectedDate
+                ? (selectedDate + ' 00:00:00')
+                : (originalBillTime || (function nowTime() {
+                    var d = new Date();
+                    return d.getFullYear() + '-' +
+                        String(d.getMonth() + 1).padStart(2, '0') + '-' +
+                        String(d.getDate()).padStart(2, '0') + ' ' +
+                        String(d.getHours()).padStart(2, '0') + ':' +
+                        String(d.getMinutes()).padStart(2, '0') + ':' +
+                        String(d.getSeconds()).padStart(2, '0');
+                })());
+
+            keySave.disabled = true;
+            keySave.textContent = '保存中...';
+
+            var payload = {
+                type: currentType,
+                amount: amount,
+                category_id: selectedCategoryId,
+                remark: remarkInput.value.trim(),
+                bill_time: billTime
+            };
+
+            function handleSave(result) {
+                keySave.disabled = false;
+                keySave.textContent = '保存';
+                if (result.code === 0) {
+                    window.location.href = 'home.html';
+                } else {
+                    showToast(result.msg || '保存失败');
+                }
+            }
+
+            if (editId) {
+                Auth.fetchApi('/bills/' + editId, {
+                    method: 'PUT',
+                    body: JSON.stringify(payload)
+                }).then(handleSave);
+                return;
+            }
+
+            Auth.fetchApi('/bills', {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            })
+            .then(handleSave)
+            .catch(function () {
+                keySave.disabled = false;
+                keySave.textContent = '保存';
+                showToast('网络错误，请重试');
+            });
+        });
+
+        function showToast(msg) {
+            var toast = document.createElement('div');
+            toast.className = 'fixed top-20 left-1/2 -translate-x-1/2 z-[100] bg-surface-dark text-on-surface px-6 py-3 rounded-xl shadow-lg text-body-sm font-body-sm';
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(function () { toast.remove(); }, 2500);
+        }
+
+        // ===== 初始化：先加载分类，再检查编辑模式 =====
+        loadCategories('EXPENSE');
+
+        var params = new URLSearchParams(window.location.search);
+        editId = params.get('edit');
+
+        if (editId) {
+            // 编辑模式：加载账单数据并预填
+            document.querySelector('h1').textContent = '修改账单';
+            keySave.textContent = '保存';
+
+            Auth.fetchApi('/bills/' + editId)
+            .then(function (result) {
+                if (result.code !== 0) {
+                    showToast('加载账单失败');
+                    return;
+                }
+                var bill = result.data;
+
+                // 保留原始时间（编辑模式下保存时不再覆盖为当前时间）
+                originalBillTime = bill.bill_time || '';
+
+                // 预填日期（取日期部分，去掉时分秒）
+                if (originalBillTime) {
+                    selectedDate = originalBillTime.substring(0, 10);
+                }
+
+                // 设置金额
+                amountStr = String(parseFloat(bill.amount).toFixed(2));
+                updateAmountDisplay();
+
+                // 设置备注
+                remarkInput.value = bill.remark || '';
+
+                // 设置时间显示（仅显示日期）
+                if (bill.bill_time) {
+                    var timeStr = bill.bill_time;
+                    if (timeStr.length >= 10) {
+                        var datePart = timeStr.substring(0, 10);
+                        var formatted = datePart.substring(0, 4) + '/' + datePart.substring(5, 7) + '/' + datePart.substring(8, 10);
+                        document.getElementById('time-label').innerHTML = '<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: \'FILL\' 1;">schedule</span>' + formatted;
+                    }
+                }
+
+                // 设置账单类型并重新加载对应分类
+                setActiveType(bill.type);
+
+                // 分类渲染后自动选中
+                setTimeout(function () {
+                    document.querySelectorAll('.cat-btn').forEach(function (btn) {
+                        if (parseInt(btn.getAttribute('data-id')) === bill.category_id) {
+                            btn.click();
+                        }
+                    });
+                }, 500);
+            });
+        }
+    })();
+    </script>
+</body>
+</html>

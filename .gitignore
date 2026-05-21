@@ -1,0 +1,44 @@
+# Java / Spring Boot
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.log
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.project
+.classpath
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Node / frontend
+node_modules/
+package-lock.json
+package-lock.json
+
+# Local settings
+.claude/settings.local.json
+
+# Environment variables (sensitive config)
+.env
+.env.local
+.env.production
+
+# Build output
+dist/
+build/
+out/
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~

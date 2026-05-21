@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>设置 - 每日财务管家</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+    <link href="../assets/css/base.css" rel="stylesheet">
+    <script src="../assets/js/auth.js"></script>
+    <script>Auth.check();</script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-error": "#ffffff", "error-container": "#ffdad6",
+                        "tertiary-fixed-dim": "#ffb95f", "on-secondary-fixed-variant": "#005236",
+                        "tertiary": "#784b00", "surface-container-low": "#eff4ff",
+                        "secondary": "#006c49", "secondary-fixed": "#6ffbbe",
+                        "outline": "#737686", "on-surface": "#0b1c30",
+                        "inverse-primary": "#b4c5ff", "secondary-fixed-dim": "#4edea3",
+                        "on-tertiary-fixed": "#2a1700", "surface-container": "#e5eeff",
+                        "on-primary-fixed": "#00174b", "surface-container-lowest": "#ffffff",
+                        "tertiary-fixed": "#ffddb8", "on-error-container": "#93000a",
+                        "outline-variant": "#c3c6d7", "on-secondary-fixed": "#002113",
+                        "bg-light": "#F8FAFC", "on-primary": "#ffffff",
+                        "surface-bright": "#f8f9ff", "success-growth": "#10B981",
+                        "danger-expense": "#EF4444", "inverse-on-surface": "#eaf1ff",
+                        "inverse-surface": "#213145", "on-background": "#0b1c30",
+                        "tertiary-container": "#996100", "surface-container-high": "#dce9ff",
+                        "on-tertiary-container": "#ffeedd", "error": "#ba1a1a",
+                        "primary": "#004ac6", "on-tertiary-fixed-variant": "#653e00",
+                        "secondary-container": "#6cf8bb", "on-primary-container": "#eeefff",
+                        "background": "#f8f9ff", "surface-tint": "#0053db",
+                        "surface-dark": "#1E293B", "primary-container": "#2563eb",
+                        "on-tertiary": "#ffffff", "on-secondary": "#ffffff",
+                        "bg-dark": "#0F172A", "surface-container-highest": "#d3e4fe",
+                        "primary-fixed-dim": "#b4c5ff", "surface-variant": "#d3e4fe",
+                        "on-secondary-container": "#00714d", "on-surface-variant": "#434655",
+                        "warning-alert": "#F59E0B", "primary-fixed": "#dbe1ff",
+                        "on-primary-fixed-variant": "#003ea8", "surface": "#f8f9ff",
+                        "surface-dim": "#cbdbf5"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "12px", "base-unit": "4px", "container-margin": "16px",
+                        "touch-target-min": "44px", "card-padding": "20px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"], "body-sm": ["Inter"], "body-lg": ["Inter"],
+                        "display-hero-mobile": ["Inter"], "display-hero": ["Inter"],
+                        "label-caps": ["Inter"], "numeric-data": ["Inter"],
+                        "headline-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "26px", "fontWeight": "400"}],
+                        "display-hero-mobile": ["28px", {"lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "display-hero": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "numeric-data": ["20px", {"lineHeight": "24px", "fontWeight": "500"}],
+                        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-bg-light text-on-surface min-h-screen pb-24">
+
+    <!-- ==================== 顶部导航栏 ==================== -->
+    <header class="sticky top-0 z-40 flex justify-between items-center px-container-margin py-3 w-full max-w-7xl mx-auto bg-surface/90 dark:bg-bg-dark/90 backdrop-blur-md border-b border-outline-variant/20 shadow-sm">
+        <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary">account_balance_wallet</span>
+            <span class="text-headline-md font-headline-md font-bold text-primary tracking-tight">每日财务管家</span>
+        </div>
+    </header>
+
+    <!-- ==================== 主内容区 ==================== -->
+    <main class="max-w-3xl mx-auto px-container-margin mt-6">
+
+        <!-- 用户头像 + 昵称 -->
+        <section class="bg-surface-container-lowest rounded-xl p-card-padding shadow-sm flex items-center gap-5 mb-8">
+            <div class="relative group">
+                <div class="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden cursor-pointer" id="avatar-upload-area" title="点击更换头像">
+                    <img id="user-avatar-img" class="w-20 h-20 rounded-full object-cover hidden" src="" alt="头像">
+                    <span id="user-avatar" class="material-symbols-outlined text-[48px] text-primary">person</span>
+                </div>
+                <div class="pointer-events-none absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                    <span class="material-symbols-outlined text-white text-[20px]">camera_alt</span>
+                </div>
+                <input id="avatar-file-input" type="file" accept="image/*" class="hidden">
+                <div id="user-status" class="absolute bottom-0 right-0 bg-success-growth w-5 h-5 rounded-full border-2 border-surface-container-lowest"></div>
+            </div>
+            <div class="flex-1">
+                <h1 id="user-nickname" class="text-headline-md font-headline-md text-on-surface">加载中...</h1>
+                <p id="user-phone-display" class="text-body-sm font-body-sm text-on-surface-variant mt-1"></p>
+            </div>
+            <button id="btn-edit-nickname" class="text-primary hover:bg-primary/5 p-2 rounded-full transition-colors">
+                <span class="material-symbols-outlined">edit</span>
+            </button>
+        </section>
+
+        <!-- 统计快捷数据 -->
+        <div class="grid grid-cols-2 gap-4 mb-8">
+            <div class="bg-primary-container text-on-primary-container p-card-padding rounded-xl">
+                <p class="text-label-caps font-label-caps opacity-80 uppercase tracking-wider">本月记账</p>
+                <p id="month-count" class="text-numeric-data font-numeric-data mt-1">-- <span class="text-body-sm">笔</span></p>
+            </div>
+            <div class="bg-surface-container-high p-card-padding rounded-xl">
+                <p class="text-label-caps font-label-caps text-on-surface-variant uppercase tracking-wider">总支出</p>
+                <p id="month-expense" class="text-numeric-data font-numeric-data mt-1 text-danger-expense">¥0</p>
+            </div>
+        </div>
+
+        <!-- ==================== 设置菜单区 ==================== -->
+        <nav class="space-y-6">
+
+            <!-- 账单管理分组 -->
+            <div>
+                <h3 class="text-label-caps font-label-caps text-on-surface-variant px-2 mb-2">账单管理</h3>
+                <div class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm">
+                    <a class="flex items-center justify-between p-4 hover:bg-surface-container-low transition-colors border-b border-outline-variant/10" href="category-manage.html">
+                        <div class="flex items-center gap-4">
+                            <span class="material-symbols-outlined text-primary">category</span>
+                            <span class="text-body-md font-body-md text-on-surface">类别管理</span>
+                        </div>
+                        <span class="material-symbols-outlined text-outline">chevron_right</span>
+                    </a>
+                    <a class="flex items-center justify-between p-4 hover:bg-surface-container-low transition-colors border-b border-outline-variant/10" href="budget.html">
+                        <div class="flex items-center gap-4">
+                            <span class="material-symbols-outlined text-primary">monitoring</span>
+                            <span class="text-body-md font-body-md text-on-surface">预算设置</span>
+                        </div>
+                        <span class="material-symbols-outlined text-outline">chevron_right</span>
+                    </a>
+                    <a class="flex items-center justify-between p-4 hover:bg-surface-container-low transition-colors cursor-pointer" onclick="showV2Tip('导出账单')" href="javascript:void(0)">
+                        <div class="flex items-center gap-4">
+                            <span class="material-symbols-outlined text-primary">export-notes</span>
+                            <span class="text-body-md font-body-md text-on-surface">导出账单</span>
+                        </div>
+                        <span class="text-body-sm text-primary">V2.0 即将上线</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 系统设置分组 -->
+            <div>
+                <h3 class="text-label-caps font-label-caps text-on-surface-variant px-2 mb-2">系统设置</h3>
+                <div class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm">
+                    <div class="flex items-center justify-between p-4 border-b border-outline-variant/10">
+                        <div class="flex items-center gap-4">
+                            <span class="material-symbols-outlined text-tertiary">dark_mode</span>
+                            <span class="text-body-md font-body-md text-on-surface">深色模式</span>
+                        </div>
+                        <div class="relative inline-flex items-center cursor-pointer">
+                            <input id="theme-toggle" class="sr-only peer" type="checkbox">
+                            <div class="w-11 h-6 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                        </div>
+                    </div>
+                    <a class="flex items-center justify-between p-4 hover:bg-surface-container-low transition-colors border-b border-outline-variant/10" href="change-password.html">
+                        <div class="flex items-center gap-4">
+                            <span class="material-symbols-outlined text-secondary">security</span>
+                            <span class="text-body-md font-body-md text-on-surface">账号与安全</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-body-sm text-outline">修改密码</span>
+                            <span class="material-symbols-outlined text-outline">chevron_right</span>
+                        </div>
+                    </a>
+                    <!-- 手机号绑定 -->
+                    <div id="phone-bind-section" class="flex items-center justify-between p-4 border-b border-outline-variant/10">
+                        <div class="flex items-center gap-4">
+                            <span class="material-symbols-outlined text-primary">phone_iphone</span>
+                            <span class="text-body-md font-body-md text-on-surface">手机号</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span id="phone-status" class="text-body-sm text-outline">未绑定</span>
+                            <button id="btn-bind-phone" class="text-primary hover:bg-primary/5 px-3 py-1 rounded-full text-label-caps font-label-caps bg-primary/5 transition-colors">绑定</button>
+                        </div>
+                    </div>
+                    <div id="language-section" class="flex items-center justify-between p-4 hover:bg-surface-container-low transition-colors cursor-pointer" onclick="showLanguageDialog()">
+                        <div class="flex items-center gap-4">
+                            <span class="material-symbols-outlined text-warning-alert">language</span>
+                            <span class="text-body-md font-body-md text-on-surface">语言设置</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span id="language-display" class="text-body-sm text-outline">简体中文</span>
+                            <span class="material-symbols-outlined text-outline">chevron_right</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 关于分组 -->
+            <div>
+                <h3 class="text-label-caps font-label-caps text-on-surface-variant px-2 mb-2">关于</h3>
+                <div class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm">
+                    <a class="flex items-center justify-between p-4 hover:bg-surface-container-low transition-colors border-b border-outline-variant/10 cursor-pointer" onclick="showV2Tip('关于每日财务管家')" href="javascript:void(0)">
+                        <div class="flex items-center gap-4">
+                            <span class="material-symbols-outlined text-outline">info</span>
+                            <span class="text-body-md font-body-md text-on-surface">关于每日财务管家</span>
+                        </div>
+                        <span class="material-symbols-outlined text-outline">chevron_right</span>
+                    </a>
+                    <a class="flex items-center justify-between p-4 hover:bg-surface-container-low transition-colors cursor-pointer" onclick="showV2Tip('去应用商店评分')" href="javascript:void(0)">
+                        <div class="flex items-center gap-4">
+                            <span class="material-symbols-outlined text-outline">star</span>
+                            <span class="text-body-md font-body-md text-on-surface">去应用商店评分</span>
+                        </div>
+                        <span class="material-symbols-outlined text-outline">chevron_right</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 退出登录按钮 -->
+            <button id="btn-logout" class="w-full py-4 text-center bg-error-container text-on-error-container font-headline-md rounded-xl hover:bg-error/10 transition-all Active:scale-95 duration-100">
+                退出登录
+            </button>
+            <p class="text-center text-label-caps text-outline pb-12">Version 2.4.1 (Build 882)</p>
+        </nav>
+    </main>
+
+    <!-- ==================== 语言选择弹窗 ==================== -->
+    <div id="language-dialog" class="fixed inset-0 z-[60] hidden items-end justify-center bg-black/50" onclick="closeLanguageDialog(event)">
+        <div class="w-full max-w-3xl bg-surface-container-lowest rounded-t-2xl p-card-padding pb-8 transition-transform duration-300" onclick="event.stopPropagation()">
+            <h2 class="text-headline-md font-headline-md text-on-surface mb-4">选择语言</h2>
+            <div class="space-y-1" id="language-options">
+                <div class="flex items-center justify-between p-4 rounded-xl cursor-pointer hover:bg-surface-container transition-colors" onclick="selectLanguage('zh-CN')">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">🇨🇳</span>
+                        <div>
+                            <p class="text-body-md font-body-md text-on-surface">简体中文</p>
+                            <p class="text-body-sm text-on-surface-variant">Chinese Simplified</p>
+                        </div>
+                    </div>
+                    <span class="material-symbols-outlined text-primary lang-check hidden">check_circle</span>
+                </div>
+                <div class="flex items-center justify-between p-4 rounded-xl cursor-pointer hover:bg-surface-container transition-colors" onclick="selectLanguage('en-US')">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">🇺🇸</span>
+                        <div>
+                            <p class="text-body-md font-body-md text-on-surface">English (US)</p>
+                            <p class="text-body-sm text-on-surface-variant">英语（美国）</p>
+                        </div>
+                    </div>
+                    <span class="material-symbols-outlined text-primary lang-check hidden">check_circle</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 底部导航栏 ==================== -->
+    <nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-safe pt-2 bg-surface/80 backdrop-blur-xl border-t border-outline-variant/10 shadow-[0_-4px_12px_0_rgba(0,0,0,0.05)] rounded-t-xl">
+        <div id="bottom-nav"></div>
+    </nav>
+    <script src="../assets/js/nav.js"></script>
+    <script>Nav.init('settings');</script>
+
+    <script>
+    (function () {
+        var phoneStatus = document.getElementById('phone-status');
+        var btnBindPhone = document.getElementById('btn-bind-phone');
+        var bindBtn = btnBindPhone;
+
+        function updatePhoneUI(phone) {
+            if (phone) {
+                var masked = phone.substring(0, 3) + '****' + phone.substring(phone.length - 4);
+                phoneStatus.textContent = masked;
+                phoneStatus.className = 'text-body-sm text-success-growth';
+                bindBtn.textContent = '更换';
+            } else {
+                phoneStatus.textContent = '未绑定';
+                phoneStatus.className = 'text-body-sm text-outline';
+                bindBtn.textContent = '绑定';
+            }
+        }
+
+        var avatarFileInput = document.getElementById('avatar-file-input');
+        var avatarImg = document.getElementById('user-avatar-img');
+        var avatarIcon = document.getElementById('user-avatar');
+
+        function showAvatar(url) {
+            if (url) {
+                avatarImg.src = url;
+                avatarImg.classList.remove('hidden');
+                avatarIcon.classList.add('hidden');
+            } else {
+                avatarImg.classList.add('hidden');
+                avatarIcon.classList.remove('hidden');
+            }
+        }
+
+        // 点击头像区域触发文件选择
+        document.getElementById('avatar-upload-area').addEventListener('click', function () {
+            avatarFileInput.click();
+        });
+
+        // 上传头像
+        avatarFileInput.addEventListener('change', function () {
+            var file = avatarFileInput.files[0];
+            if (!file) return;
+            var uploadArea = document.getElementById('avatar-upload-area');
+            uploadArea.style.pointerEvents = 'none';
+
+            var formData = new FormData();
+            formData.append('avatar', file);
+
+            Auth.fetchApi('/user/upload-avatar', {
+                method: 'POST',
+                body: formData
+            })
+            .then(function (result) {
+                uploadArea.style.pointerEvents = '';
+                if (result.code === 0) {
+                    showAvatar(result.data.url);
+                    alert('头像上传成功');
+                } else {
+                    alert(result.msg || '上传失败');
+                }
+            })
+            .catch(function () {
+                uploadArea.style.pointerEvents = '';
+                alert('上传失败，请重试');
+            });
+
+            avatarFileInput.value = '';
+        });
+
+        // 加载用户信息
+        Auth.fetchApi('/user/profile')
+        .then(function (result) {
+            if (result.code === 0) {
+                var user = result.data;
+                document.getElementById('user-nickname').textContent = user.nickname || '用户';
+                showAvatar(user.avatar_url);
+                // 显示脱敏手机号
+                if (user.phone) {
+                    var masked = user.phone.substring(0, 3) + '****' + user.phone.substring(user.phone.length - 4);
+                    document.getElementById('user-phone-display').textContent = masked;
+                }
+                updatePhoneUI(user.phone || '');
+            }
+        });
+
+        // 编辑昵称
+        document.getElementById('btn-edit-nickname').addEventListener('click', function () {
+            var currentName = document.getElementById('user-nickname').textContent;
+            var newName = prompt('请输入新昵称：', currentName);
+            if (!newName || newName.trim() === '') return;
+            if (newName.trim() === currentName) return;
+
+            var btn = document.getElementById('btn-edit-nickname');
+            btn.disabled = true;
+
+            Auth.fetchApi('/user/profile', {
+                method: 'PUT',
+                body: JSON.stringify({ nickname: newName.trim() })
+            })
+            .then(function (result) {
+                btn.disabled = false;
+                if (result.code === 0) {
+                    document.getElementById('user-nickname').textContent = newName.trim();
+                    alert('昵称修改成功');
+                } else {
+                    alert(result.msg || '修改失败');
+                }
+            })
+            .catch(function () {
+                btn.disabled = false;
+                alert('网络错误，请稍后重试');
+            });
+        });
+
+        // 手机号绑定/更换
+        bindBtn.addEventListener('click', function () {
+            var phone = prompt('请输入手机号：');
+            if (!phone) return;
+            phone = phone.replace(/\s/g, '');
+            if (!/^\d{8,15}$/.test(phone)) {
+                alert('手机号格式不正确');
+                return;
+            }
+
+            bindBtn.disabled = true;
+            bindBtn.textContent = '绑定中...';
+
+            Auth.fetchApi('/user/bind-phone', {
+                method: 'PUT',
+                body: JSON.stringify({ phone: phone })
+            })
+            .then(function (result) {
+                bindBtn.disabled = false;
+                if (result.code === 0) {
+                    alert('绑定成功');
+                    updatePhoneUI(phone);
+                    document.getElementById('user-phone-display').textContent = phone.substring(0, 3) + '****' + phone.substring(phone.length - 4);
+                } else {
+                    alert(result.msg || '绑定失败');
+                }
+            })
+            .catch(function () {
+                bindBtn.disabled = false;
+                alert('网络错误，请稍后重试');
+            });
+        });
+
+        // 加载本月统计
+        var now = new Date();
+        var monthStr = now.getFullYear() + '-' + (now.getMonth() + 1 < 10 ? '0' + (now.getMonth() + 1) : (now.getMonth() + 1));
+
+        Auth.fetchApi('/bills/stats/month?month=' + monthStr)
+        .then(function (result) {
+            if (result.code === 0) {
+                var data = result.data;
+                document.getElementById('month-count').innerHTML = (data.expense.count + data.income.count) + ' <span class="text-body-sm">笔</span>';
+                document.getElementById('month-expense').textContent = '¥' + parseFloat(data.expense.total).toFixed(2);
+            }
+        });
+
+        // 退出登录
+        document.getElementById('btn-logout').addEventListener('click', function () {
+            Auth.logout();
+        });
+
+        // 语言设置
+        var currentLang = localStorage.getItem('language') || 'zh-CN';
+        var langNames = { 'zh-CN': '简体中文', 'en-US': 'English' };
+
+        function updateLanguageUI() {
+            document.getElementById('language-display').textContent = langNames[currentLang] || '简体中文';
+            var checks = document.querySelectorAll('#language-options .lang-check');
+            var items = document.querySelectorAll('#language-options > div');
+            for (var i = 0; i < items.length; i++) {
+                checks[i].classList.add('hidden');
+            }
+            var idx = currentLang === 'en-US' ? 1 : 0;
+            checks[idx].classList.remove('hidden');
+        }
+        updateLanguageUI();
+
+        window.showLanguageDialog = function () {
+            var dialog = document.getElementById('language-dialog');
+            dialog.classList.remove('hidden');
+            dialog.classList.add('flex');
+            updateLanguageUI();
+        };
+
+        window.closeLanguageDialog = function (e) {
+            if (e && e.target !== e.currentTarget) return;
+            var dialog = document.getElementById('language-dialog');
+            dialog.classList.add('hidden');
+            dialog.classList.remove('flex');
+        };
+
+        window.selectLanguage = function (lang) {
+            currentLang = lang;
+            localStorage.setItem('language', lang);
+            updateLanguageUI();
+            setTimeout(function () {
+                closeLanguageDialog({ target: document.getElementById('language-dialog'), currentTarget: document.getElementById('language-dialog') });
+            }, 200);
+        };
+
+        window.showV2Tip = function (name) {
+            alert('"' + name + '" 功能 V2.0 即将上线，敬请期待！');
+        };
+    })();
+    </script>
+</body>
+</html>

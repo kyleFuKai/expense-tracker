@@ -1,0 +1,257 @@
+<!DOCTYPE html><html lang="zh-CN"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-error": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "on-secondary-fixed-variant": "#005236",
+                        "tertiary": "#784b00",
+                        "surface-container-low": "#eff4ff",
+                        "secondary": "#006c49",
+                        "secondary-fixed": "#6ffbbe",
+                        "outline": "#737686",
+                        "on-surface": "#0b1c30",
+                        "inverse-primary": "#b4c5ff",
+                        "secondary-fixed-dim": "#4edea3",
+                        "on-tertiary-fixed": "#2a1700",
+                        "surface-container": "#e5eeff",
+                        "on-primary-fixed": "#00174b",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-fixed": "#ffddb8",
+                        "on-error-container": "#93000a",
+                        "outline-variant": "#c3c6d7",
+                        "on-secondary-fixed": "#002113",
+                        "bg-light": "#F8FAFC",
+                        "on-primary": "#ffffff",
+                        "surface-bright": "#f8f9ff",
+                        "success-growth": "#10B981",
+                        "danger-expense": "#EF4444",
+                        "inverse-on-surface": "#eaf1ff",
+                        "inverse-surface": "#213145",
+                        "on-background": "#0b1c30",
+                        "tertiary-container": "#996100",
+                        "surface-container-high": "#dce9ff",
+                        "on-tertiary-container": "#ffeedd",
+                        "error": "#ba1a1a",
+                        "primary": "#004ac6",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "secondary-container": "#6cf8bb",
+                        "on-primary-container": "#eeefff",
+                        "background": "#f8f9ff",
+                        "surface-tint": "#0053db",
+                        "surface-dark": "#1E293B",
+                        "primary-container": "#2563eb",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "bg-dark": "#0F172A",
+                        "surface-container-highest": "#d3e4fe",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "surface-variant": "#d3e4fe",
+                        "on-secondary-container": "#00714d",
+                        "on-surface-variant": "#434655",
+                        "warning-alert": "#F59E0B",
+                        "primary-fixed": "#dbe1ff",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "surface": "#f8f9ff",
+                        "surface-dim": "#cbdbf5"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "12px",
+                        "base-unit": "4px",
+                        "container-margin": "16px",
+                        "touch-target-min": "44px",
+                        "card-padding": "20px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "display-hero-mobile": ["Inter"],
+                        "display-hero": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "numeric-data": ["Inter"],
+                        "headline-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "26px", "fontWeight": "400"}],
+                        "display-hero-mobile": ["28px", {"lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "display-hero": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "numeric-data": ["20px", {"lineHeight": "24px", "fontWeight": "500"}],
+                        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .numeric-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr) 80px;
+        }
+        body {
+            background-color: #F8FAFC;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen flex flex-col items-center">
+<header class="sticky top-0 z-40 flex justify-between items-center px-container-margin py-3 w-full max-w-7xl mx-auto bg-surface/90 backdrop-blur-md border-b border-outline-variant/20 shadow-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="account_balance_wallet">account_balance_wallet</span>
+<h1 class="text-headline-md font-headline-md font-bold text-primary tracking-tight">每日财务管家</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-full hover:bg-surface-container-high transition-colors duration-200">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="calendar_today">calendar_today</span>
+</button>
+<button class="p-2 rounded-full hover:bg-surface-container-high transition-colors duration-200">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="notifications">notifications</span>
+</button>
+</div>
+</header>
+<main class="w-full max-w-lg mx-auto px-4 pt-6 pb-24 flex flex-col gap-6">
+<div class="bg-white rounded-xl shadow-sm p-card-padding flex flex-col gap-4">
+<div class="flex justify-between items-end border-b border-outline-variant pb-2">
+<div class="flex flex-col">
+<span class="text-label-caps font-label-caps text-outline uppercase tracking-wider">支出金额</span>
+<div class="flex items-center gap-1">
+<span class="text-headline-md font-headline-md text-on-surface-variant">¥</span>
+<input class="w-full bg-transparent border-none focus:ring-0 text-display-hero-mobile font-display-hero-mobile text-primary placeholder:text-outline-variant p-0" placeholder="0.00" type="tel">
+</div>
+</div>
+<div class="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-label-caps font-label-caps flex items-center gap-1"><span class="material-symbols-outlined text-[18px]" data-icon="schedule" data-weight="fill" style="font-variation-settings: &quot;FILL&quot; 1;">schedule</span>现在</div>
+</div>
+<div class="grid grid-cols-4 gap-y-6 pt-4">
+<button class="flex flex-col items-center gap-2 group">
+<div class="w-12 h-12 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined" data-icon="restaurant">restaurant</span>
+</div>
+<span class="text-label-caps font-label-caps text-on-surface">餐饮</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="w-12 h-12 rounded-full bg-surface-container text-on-surface-variant flex items-center justify-center group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined" data-icon="directions_bus">directions_bus</span>
+</div>
+<span class="text-label-caps font-label-caps text-on-surface">交通</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="w-12 h-12 rounded-full bg-surface-container text-on-surface-variant flex items-center justify-center group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span>
+</div>
+<span class="text-label-caps font-label-caps text-on-surface">购物</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="w-12 h-12 rounded-full bg-surface-container text-on-surface-variant flex items-center justify-center group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+</div>
+<span class="text-label-caps font-label-caps text-on-surface">住房</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="w-12 h-12 rounded-full bg-surface-container text-on-surface-variant flex items-center justify-center group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined" data-icon="movie">movie</span>
+</div>
+<span class="text-label-caps font-label-caps text-on-surface">娱乐</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="w-12 h-12 rounded-full bg-surface-container text-on-surface-variant flex items-center justify-center group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined" data-icon="medical_services">medical_services</span>
+</div>
+<span class="text-label-caps font-label-caps text-on-surface">医疗</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="w-12 h-12 rounded-full bg-surface-container text-on-surface-variant flex items-center justify-center group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined" data-icon="school">school</span>
+</div>
+<span class="text-label-caps font-label-caps text-on-surface">教育</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="w-12 h-12 rounded-full bg-surface-container text-on-surface-variant flex items-center justify-center group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span>
+</div>
+<span class="text-label-caps font-label-caps text-on-surface">其他</span>
+</button>
+</div>
+</div>
+<div class="space-y-4">
+<div class="relative">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline" data-icon="edit_note">edit_note</span>
+<input class="w-full h-11 pl-11 pr-4 bg-white border border-outline-variant/30 rounded-lg focus:border-primary focus:ring-1 focus:ring-primary/20 text-body-md font-body-md" placeholder="添加备注..." type="text">
+</div>
+<div class="flex items-center gap-2 overflow-x-auto no-scrollbar">
+<button class="flex-none px-4 py-1.5 rounded-full border border-outline-variant text-label-caps font-label-caps text-on-surface-variant bg-white"># 午餐</button>
+<button class="flex-none px-4 py-1.5 rounded-full border border-outline-variant text-label-caps font-label-caps text-on-surface-variant bg-white"># 日常</button>
+<button class="flex-none px-4 py-1.5 rounded-full border border-outline-variant text-label-caps font-label-caps text-on-surface-variant bg-white"># 个人</button>
+<button class="flex-none w-8 h-8 rounded-full border border-dashed border-outline-variant flex items-center justify-center text-outline">
+<span class="material-symbols-outlined text-[18px]" data-icon="add">add</span>
+</button>
+</div>
+</div>
+<div class="bg-surface-container-low rounded-xl p-2 grid grid-cols-4 gap-2">
+<button class="h-14 bg-white rounded-lg flex items-center justify-center text-headline-md font-headline-md text-on-surface hover:bg-surface-container-high transition-colors">1</button>
+<button class="h-14 bg-white rounded-lg flex items-center justify-center text-headline-md font-headline-md text-on-surface hover:bg-surface-container-high transition-colors">2</button>
+<button class="h-14 bg-white rounded-lg flex items-center justify-center text-headline-md font-headline-md text-on-surface hover:bg-surface-container-high transition-colors">3</button>
+<button class="h-14 bg-white rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined" data-icon="backspace">backspace</span>
+</button>
+<button class="h-14 bg-white rounded-lg flex items-center justify-center text-headline-md font-headline-md text-on-surface hover:bg-surface-container-high transition-colors">4</button>
+<button class="h-14 bg-white rounded-lg flex items-center justify-center text-headline-md font-headline-md text-on-surface hover:bg-surface-container-high transition-colors">5</button>
+<button class="h-14 bg-white rounded-lg flex items-center justify-center text-headline-md font-headline-md text-on-surface hover:bg-surface-container-high transition-colors">6</button>
+<button class="h-14 bg-primary text-on-primary rounded-lg flex items-center justify-center row-span-3 text-body-lg font-body-lg font-bold hover:bg-primary-container active:scale-95 transition-all">保存</button>
+<button class="h-14 bg-white rounded-lg flex items-center justify-center text-headline-md font-headline-md text-on-surface hover:bg-surface-container-high transition-colors">7</button>
+<button class="h-14 bg-white rounded-lg flex items-center justify-center text-headline-md font-headline-md text-on-surface hover:bg-surface-container-high transition-colors">8</button>
+<button class="h-14 bg-white rounded-lg flex items-center justify-center text-headline-md font-headline-md text-on-surface hover:bg-surface-container-high transition-colors">9</button>
+<button class="h-14 bg-white rounded-lg flex items-center justify-center text-headline-md font-headline-md text-on-surface hover:bg-surface-container-high transition-colors">.</button>
+<button class="h-14 bg-white rounded-lg flex items-center justify-center text-headline-md font-headline-md text-on-surface hover:bg-surface-container-high transition-colors col-span-2">0</button>
+<button class="h-14 bg-white rounded-lg flex items-center justify-center text-on-surface hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined" data-icon="keyboard_hide">keyboard_hide</span>
+</button>
+</div>
+<div class="rounded-xl overflow-hidden shadow-sm h-32 relative">
+<img alt="Financial Success" class="w-full h-full object-cover" data-alt="A clean and minimalist office scene featuring a sleek wooden desk with an organized ledger and a modern digital tablet displaying clear financial growth charts. The room is flooded with bright, soft morning sunlight casting gentle shadows, emphasizing a calm and reliable atmosphere. The color palette consists of crisp whites, soft greys, and subtle pops of corporate blue, perfectly reflecting a utilitarian and professional financial stewardship aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBNtCbP7dHdvKif__rZNRZkr-DnuVP2K5S6UamiptomKGTiLaweHn_tdfC-RZlzDD9ALf6sEfbLvJfAUvHPuhn-gbzQxUZGi08-qWI9d0fsYsV_qrkbhDolmURpm-F9zHItPKq6udexnZV-JhoddtXFD1h-lxdY_Yxd9f6Tf2N0ZNZZEYSnzCh6yE6-lQa2Y-iFrWxJ6loiThoLUtOpFFADYP9Yz8E-OiAoJULYXrmpDBdOVPX8wYlXzHFQq9Yo9IoUlsfQeKhM7s4G">
+<div class="absolute inset-0 bg-gradient-to-r from-primary/40 to-transparent flex items-center px-6">
+<p class="text-white font-headline-md text-headline-md max-w-[180px]">追踪每一笔支出，构建您的财富未来</p>
+</div>
+</div>
+</main>
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-safe pt-2 bg-surface/80 backdrop-blur-xl border-t border-outline-variant/10 shadow-[0_-4px_12px_0_rgba(0,0,0,0.05)]">
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-2 hover:text-primary transition-all">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="text-label-caps font-label-caps">首页</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-2 hover:text-primary transition-all">
+<span class="material-symbols-outlined" data-icon="insights">insights</span>
+<span class="text-label-caps font-label-caps">统计</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-2xl px-4 py-2 scale-90 transition-all">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+<span class="text-label-caps font-label-caps">记账</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-2 hover:text-primary transition-all">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="text-label-caps font-label-caps">我的</span>
+</button>
+</nav>
+
+
+</body></html>

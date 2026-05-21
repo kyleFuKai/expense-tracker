@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>首页 - 每日财务管家</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+    <link href="../assets/css/base.css" rel="stylesheet">
+    <script src="../assets/js/auth.js"></script>
+    <script>Auth.check();</script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-error": "#ffffff", "error-container": "#ffdad6",
+                        "tertiary-fixed-dim": "#ffb95f", "on-secondary-fixed-variant": "#005236",
+                        "tertiary": "#784b00", "surface-container-low": "#eff4ff",
+                        "secondary": "#006c49", "secondary-fixed": "#6ffbbe",
+                        "outline": "#737686", "on-surface": "#0b1c30",
+                        "inverse-primary": "#b4c5ff", "secondary-fixed-dim": "#4edea3",
+                        "on-tertiary-fixed": "#2a1700", "surface-container": "#e5eeff",
+                        "on-primary-fixed": "#00174b", "surface-container-lowest": "#ffffff",
+                        "tertiary-fixed": "#ffddb8", "on-error-container": "#93000a",
+                        "outline-variant": "#c3c6d7", "on-secondary-fixed": "#002113",
+                        "bg-light": "#F8FAFC", "on-primary": "#ffffff",
+                        "surface-bright": "#f8f9ff", "success-growth": "#10B981",
+                        "danger-expense": "#EF4444", "inverse-on-surface": "#eaf1ff",
+                        "inverse-surface": "#213145", "on-background": "#0b1c30",
+                        "tertiary-container": "#996100", "surface-container-high": "#dce9ff",
+                        "on-tertiary-container": "#ffeedd", "error": "#ba1a1a",
+                        "primary": "#004ac6", "on-tertiary-fixed-variant": "#653e00",
+                        "secondary-container": "#6cf8bb", "on-primary-container": "#eeefff",
+                        "background": "#f8f9ff", "surface-tint": "#0053db",
+                        "surface-dark": "#1E293B", "primary-container": "#2563eb",
+                        "on-tertiary": "#ffffff", "on-secondary": "#ffffff",
+                        "bg-dark": "#0F172A", "surface-container-highest": "#d3e4fe",
+                        "primary-fixed-dim": "#b4c5ff", "surface-variant": "#d3e4fe",
+                        "on-secondary-container": "#00714d", "on-surface-variant": "#434655",
+                        "warning-alert": "#F59E0B", "primary-fixed": "#dbe1ff",
+                        "on-primary-fixed-variant": "#003ea8", "surface": "#f8f9ff",
+                        "surface-dim": "#cbdbf5"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "12px", "base-unit": "4px", "container-margin": "16px",
+                        "touch-target-min": "44px", "card-padding": "20px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"], "body-sm": ["Inter"], "body-lg": ["Inter"],
+                        "display-hero-mobile": ["Inter"], "display-hero": ["Inter"],
+                        "label-caps": ["Inter"], "numeric-data": ["Inter"],
+                        "headline-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "26px", "fontWeight": "400"}],
+                        "display-hero-mobile": ["28px", {"lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "display-hero": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "numeric-data": ["20px", {"lineHeight": "24px", "fontWeight": "500"}],
+                        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-bg-light text-on-surface antialiased min-h-screen pb-24">
+
+    <!-- ==================== 顶部导航栏 ==================== -->
+    <header class="sticky top-0 z-40 flex justify-between items-center px-container-margin py-3 w-full max-w-7xl mx-auto bg-surface/90 backdrop-blur-md border-b border-outline-variant/20 shadow-sm">
+        <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary">account_balance_wallet</span>
+            <h1 class="text-headline-md font-headline-md font-bold text-primary tracking-tight">每日财务管家</h1>
+        </div>
+    </header>
+
+    <!-- ==================== 主内容区 ==================== -->
+    <main class="max-w-5xl mx-auto px-container-margin mt-6">
+
+        <!-- 月份选择器 -->
+        <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center gap-1">
+                <span id="month-label" class="font-headline-md text-headline-md text-on-surface"></span>
+            </div>
+        </div>
+
+        <!-- 月度概览卡片 -->
+        <div class="bg-white rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] p-card-padding relative overflow-hidden mb-8 border border-outline-variant/10">
+            <div class="absolute top-0 left-0 w-2 h-full bg-success-growth"></div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <p class="text-label-caps font-label-caps text-outline mb-1 uppercase tracking-wider">本月支出</p>
+                    <h2 id="month-expense" class="font-display-hero text-display-hero text-on-surface">¥0</h2>
+                    <div class="flex items-center gap-2 mt-4">
+                        <div class="px-2 py-1 bg-surface-container rounded-lg flex flex-col">
+                            <span class="text-[10px] font-label-caps text-outline uppercase">日均支出</span>
+                            <span id="daily-avg" class="text-body-md font-numeric-data text-on-surface-variant">¥0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex flex-col justify-end md:items-end">
+                    <p class="text-label-caps font-label-caps text-outline mb-1 uppercase tracking-wider">本月收入</p>
+                    <h3 id="month-income" class="font-headline-md text-headline-md text-secondary">¥0</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- 账单列表容器 -->
+        <div id="bill-list" class="space-y-6">
+            <div class="flex items-center justify-center py-12 text-on-surface-variant">
+                <span class="material-symbols-outlined animate-spin mr-2">progress_activity</span>
+                加载中...
+            </div>
+        </div>
+
+        <!-- 空状态（无账单时显示） -->
+        <div id="empty-state" class="hidden py-12 text-center">
+            <span class="material-symbols-outlined text-[64px] text-outline">receipt_long</span>
+            <p class="text-body-md text-on-surface-variant mt-4">本月暂无账单记录</p>
+            <p class="text-body-sm text-outline mt-1">点击下方 + 按钮开始记账</p>
+        </div>
+
+        <!-- 加载状态 -->
+        <div id="load-more-loading" class="hidden py-6 text-center text-on-surface-variant text-body-sm">
+            <span class="material-symbols-outlined animate-spin mr-1 text-lg">progress_activity</span>
+            加载中...
+        </div>
+
+        <!-- 滚动触底加载探测 -->
+        <div id="scroll-sentinel"></div>
+    </main>
+
+    <!-- ==================== 悬浮记账按钮 (FAB) ==================== -->
+    <div class="fixed bottom-24 left-1/2 -translate-x-1/2 z-[60]">
+        <button class="w-14 h-14 bg-primary text-on-primary rounded-full shadow-lg flex items-center justify-center active:scale-90 transition-all duration-200" onclick="window.location.href='record.html'">
+            <span class="material-symbols-outlined text-3xl">add</span>
+        </button>
+    </div>
+
+    <!-- ==================== 底部导航栏 ==================== -->
+    <nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-safe pt-2 bg-surface/80 backdrop-blur-xl border-t border-outline-variant/10 shadow-[0_-4px_12px_0_rgba(0,0,0,0.05)] rounded-t-xl">
+        <div id="bottom-nav"></div>
+    </nav>
+    <script src="../assets/js/nav.js"></script>
+    <script>Nav.init('home');</script>
+
+    <script>
+    (function () {
+        // 获取当前年月
+        var now = new Date();
+        var year = now.getFullYear();
+        var month = now.getMonth() + 1;
+        var monthStr = year + '-' + (month < 10 ? '0' + month : month);
+
+        document.getElementById('month-label').textContent = year + '年' + month + '月';
+
+        // 分类颜色映射
+        var categoryColors = {
+            restaurant:   'text-orange-500',    'directions_car': 'text-blue-500',
+            shopping_bag: 'text-purple-500',    movie:            'text-red-500',
+            home:         'text-indigo-500',    medical_services: 'text-green-500',
+            school:       'text-teal-500',      group:            'text-pink-500',
+            payments:     'text-green-600',     more_horiz:       'text-gray-500',
+            bakery_dining:'text-orange-400',    local_taxi:       'text-blue-400',
+            cart:         'text-purple-400',    coffee:           'text-amber-600',
+            flight:       'text-sky-500',       fitness_center:   'text-red-400',
+            default:      'text-primary'
+        };
+
+        function fmtMoney(n) {
+            return '¥' + parseFloat(n).toLocaleString('zh-CN', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+        }
+
+        function getDayOfWeek(dateStr) {
+            var days = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+            var d = new Date(dateStr);
+            return days[d.getDay()];
+        }
+
+        // 加载统计数据
+        Auth.fetchApi('/bills/stats/month?month=' + monthStr)
+        .then(function (result) {
+            if (result.code === 0) {
+                var data = result.data;
+                document.getElementById('month-expense').textContent = fmtMoney(data.expense.total);
+                document.getElementById('month-income').textContent = fmtMoney(data.income.total);
+
+                var dayOfMonth = now.getDate();
+                var dailyAvg = dayOfMonth > 0 ? (data.expense.total / dayOfMonth) : 0;
+                document.getElementById('daily-avg').textContent = fmtMoney(dailyAvg);
+            }
+        });
+
+        // 分页状态
+        var billsPage = 1;
+        var billsPageSize = 10;
+        var billsTotal = 0;
+        var billsLoading = false;
+        var billsContainer = document.getElementById('bill-list');
+        var emptyState = document.getElementById('empty-state');
+        var loadMoreLoading = document.getElementById('load-more-loading');
+        var scrollSentinel = document.getElementById('scroll-sentinel');
+
+        function renderBillItem(bill) {
+            var icon = bill.category_icon || 'more_horiz';
+            var catName = bill.category_name || '其他';
+            var remark = bill.remark || catName;
+            var isExpense = bill.type === 'EXPENSE';
+            var sign = isExpense ? '-' : '+';
+            var colorClass = categoryColors[icon] || categoryColors.default;
+            var amountColor = isExpense ? 'text-danger-expense' : 'text-success-growth';
+            return '<div class="flex items-center justify-between p-4 hover:bg-surface-bright transition-colors cursor-pointer" onclick="window.location.href=\'bill-detail.html?id=' + bill.id + '\'">' +
+                '<div class="flex items-center gap-4">' +
+                '<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center ' + colorClass + '">' +
+                '<span class="material-symbols-outlined">' + icon + '</span>' +
+                '</div><div>' +
+                '<p class="font-body-md text-body-md text-on-surface">' + remark + '</p>' +
+                '<p class="text-label-caps font-label-caps text-outline">' + catName + '</p>' +
+                '</div></div>' +
+                '<span class="font-numeric-data text-numeric-data ' + amountColor + '">' + sign + fmtMoney(bill.amount) + '</span>' +
+                '</div>';
+        }
+
+        function renderBillsGrouped(bills) {
+            var grouped = {};
+            bills.forEach(function (bill) {
+                var dateKey = bill.bill_time.substring(0, 10);
+                if (!grouped[dateKey]) grouped[dateKey] = [];
+                grouped[dateKey].push(bill);
+            });
+            var dates = Object.keys(grouped).sort().reverse();
+            var html = '';
+            dates.forEach(function (dateKey) {
+                var items = grouped[dateKey];
+                var dateObj = new Date(dateKey);
+                var dateLabel = (dateObj.getMonth() + 1) + '月' + dateObj.getDate() + '日 ' + getDayOfWeek(dateKey);
+                var subtotal = 0;
+                items.forEach(function (item) {
+                    if (item.type === 'EXPENSE') subtotal -= parseFloat(item.amount);
+                    else subtotal += parseFloat(item.amount);
+                });
+                var subSign = subtotal >= 0 ? '+' : '-';
+                var amountStr = subSign + fmtMoney(Math.abs(subtotal)).replace('¥', '');
+                html += '<div>';
+                html += '<div class="flex justify-between items-center mb-3">';
+                html += '<span class="font-label-caps text-label-caps text-outline bg-surface-container px-3 py-1 rounded-full">' + dateLabel + '</span>';
+                html += '<span class="text-[12px] font-medium text-outline">小计: ' + amountStr + '</span>';
+                html += '</div>';
+                html += '<div class="bg-white rounded-xl shadow-sm border border-outline-variant/10 divide-y divide-outline-variant/10">';
+                items.forEach(function (bill) { html += renderBillItem(bill); });
+                html += '</div></div>';
+            });
+            return html;
+        }
+
+        function loadBillsPage(page) {
+            if (billsLoading) return;
+            billsLoading = true;
+            if (page > 1) loadMoreLoading.classList.remove('hidden');
+            Auth.fetchApi('/bills?month=' + monthStr + '&page=' + page + '&pageSize=' + billsPageSize)
+            .then(function (result) {
+                billsLoading = false;
+                loadMoreLoading.classList.add('hidden');
+                if (result.code !== 0) return;
+                var data = result.data;
+                billsTotal = data.total;
+                if (page === 1) {
+                    if (data.list.length === 0) {
+                        billsContainer.innerHTML = '';
+                        emptyState.classList.remove('hidden');
+                        scrollSentinel.style.display = 'none';
+                        return;
+                    }
+                    emptyState.classList.add('hidden');
+                    billsContainer.innerHTML = renderBillsGrouped(data.list);
+                } else {
+                    billsContainer.insertAdjacentHTML('beforeend', renderBillsGrouped(data.list));
+                }
+                if (data.list.length < billsPageSize) {
+                    scrollSentinel.style.display = 'none';
+                }
+            });
+        }
+
+        var observer = new IntersectionObserver(function (entries) {
+            if (entries[0].isIntersecting && !billsLoading) {
+                var nextPage = billsPage + 1;
+                if ((nextPage - 1) * billsPageSize < billsTotal) {
+                    billsPage = nextPage;
+                    loadBillsPage(billsPage);
+                } else {
+                    scrollSentinel.style.display = 'none';
+                }
+            }
+        }, { rootMargin: '200px' });
+        observer.observe(scrollSentinel);
+
+        loadBillsPage(1);
+    })();
+    </script>
+</body>
+</html>

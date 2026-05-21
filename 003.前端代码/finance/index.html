@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>登录 - 每日财务管家</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+    <link href="assets/css/base.css" rel="stylesheet">
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-surface": "#213145", "success-growth": "#10B981",
+                        "tertiary-container": "#996100", "outline": "#737686",
+                        "bg-light": "#F8FAFC", "surface": "#f8f9ff",
+                        "inverse-on-surface": "#eaf1ff", "primary": "#004ac6",
+                        "on-secondary-container": "#00714d", "surface-tint": "#0053db",
+                        "error": "#ba1a1a", "outline-variant": "#c3c6d7",
+                        "on-primary-fixed-variant": "#003ea8", "on-background": "#0b1c30",
+                        "background": "#f8f9ff", "danger-expense": "#EF4444",
+                        "on-error-container": "#93000a", "secondary-fixed-dim": "#4edea3",
+                        "on-tertiary-fixed": "#2a1700", "primary-fixed-dim": "#b4c5ff",
+                        "tertiary-fixed-dim": "#ffb95f", "inverse-primary": "#b4c5ff",
+                        "warning-alert": "#F59E0B", "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed-variant": "#005236", "surface-dark": "#1E293B",
+                        "primary-fixed": "#dbe1ff", "error-container": "#ffdad6",
+                        "surface-container-low": "#eff4ff", "surface-container-high": "#dce9ff",
+                        "on-primary": "#ffffff", "on-tertiary": "#ffffff",
+                        "secondary-fixed": "#6ffbbe", "on-surface-variant": "#434655",
+                        "surface-variant": "#d3e4fe", "bg-dark": "#0F172A",
+                        "on-surface": "#0b1c30", "tertiary": "#784b00",
+                        "secondary": "#006c49", "surface-dim": "#cbdbf5",
+                        "on-primary-fixed": "#00174b", "on-primary-container": "#eeefff",
+                        "on-tertiary-fixed-variant": "#653e00", "surface-container": "#e5eeff",
+                        "secondary-container": "#6cf8bb", "tertiary-fixed": "#ffddb8",
+                        "on-secondary": "#ffffff", "on-error": "#ffffff",
+                        "primary-container": "#2563eb", "surface-container-highest": "#d3e4fe",
+                        "on-secondary-fixed": "#002113", "on-tertiary-container": "#ffeedd",
+                        "surface-bright": "#f8f9ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"
+                    },
+                    "spacing": {
+                        "touch-target-min": "44px", "card-padding": "20px",
+                        "container-margin": "16px", "gutter": "12px", "base-unit": "4px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter"], "display-hero-mobile": ["Inter"],
+                        "body-md": ["Inter"], "label-caps": ["Inter"],
+                        "display-hero": ["Inter"], "body-lg": ["Inter"],
+                        "body-sm": ["Inter"], "numeric-data": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "display-hero-mobile": ["28px", {"lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "display-hero": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "26px", "fontWeight": "400"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "numeric-data": ["20px", {"lineHeight": "24px", "fontWeight": "500"}]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background min-h-screen font-['Inter']">
+    <div class="flex flex-col min-h-screen items-center justify-center px-container-margin py-10">
+        <!-- 品牌标识区 -->
+        <div class="w-full max-w-[560px] text-center mb-10">
+            <div class="inline-flex items-center justify-center p-4 bg-primary rounded-xl mb-6 shadow-lg shadow-primary/20">
+                <svg class="w-12 h-12 text-on-primary" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M39.5563 34.1455V13.8546C39.5563 15.708 36.8773 17.3437 32.7927 18.3189C30.2914 18.916 27.263 19.2655 24 19.2655C20.737 19.2655 17.7086 18.916 15.2073 18.3189C11.1227 17.3437 8.44365 15.708 8.44365 13.8546V34.1455C8.44365 35.9988 11.1227 37.6346 15.2073 38.6098C17.7086 39.2069 20.737 39.5564 24 39.5564C27.1288 39.5564 30.2914 39.2069 32.7927 38.6098C36.8773 37.6346 39.5563 35.9988 39.5563 34.1455Z" fill="currentColor"></path>
+                    <path clip-rule="evenodd" d="M10.4485 13.8519C10.4749 13.9271 10.6203 14.246 11.379 14.7361C12.298 15.3298 13.7492 15.9145 15.6717 16.3735C18.0007 16.9296 20.8712 17.2655 24 17.2655C27.1288 17.2655 29.9993 16.9296 32.3283 16.3735C34.2508 15.9145 35.702 15.3298 36.621 14.7361C37.3796 14.246 37.5251 13.9271 37.5515 13.8519C37.5287 13.7876 37.4333 13.5973 37.0635 13.2931C36.5266 12.8516 35.6288 12.3647 34.343 11.9175C31.79 11.0295 28.1333 10.4437 24 10.4437C19.8667 10.4437 16.2099 11.0295 13.657 11.9175C12.3712 12.3647 11.4734 12.8516 10.9365 13.2931C10.5667 13.5973 10.4713 13.7876 10.4485 13.8519ZM37.5563 18.7877C36.3176 19.3925 34.8502 19.8839 33.2571 20.2642C30.5836 20.9025 27.3973 21.2655 24 21.2655C20.6027 21.2655 17.4164 20.9025 14.7429 20.2642C13.1498 19.8839 11.6824 19.3925 10.4436 18.7877V34.1275C10.4515 34.1545 10.5427 34.4867 11.379 35.027C12.298 35.6207 13.7492 36.2054 15.6717 36.6644C18.0007 37.2205 20.8712 37.5564 24 37.5564C27.1288 37.5564 29.9993 37.2205 32.3283 36.6644C34.2508 36.2054 35.702 35.6207 36.621 35.027C37.4573 34.4867 37.5485 34.1546 37.5515 34.1275V18.7877ZM41.5563 13.8546V34.1455C41.5563 36.1078 40.158 37.5042 38.7915 38.3869C37.3498 39.3182 35.4192 40.0389 33.2571 40.5551C30.5836 41.1934 27.3973 41.5564 24 41.5564C20.6027 41.5564 17.4164 41.1934 14.7429 40.5551C12.5808 40.0389 10.6502 39.3182 9.20848 38.3869C7.84205 37.5042 6.44365 36.1078 6.44365 34.1455L6.44365 13.8546C6.44365 12.2684 7.37223 11.0454 8.39581 10.2036C9.43325 9.3505 10.8137 8.67141 12.343 8.13948C15.4203 7.06909 19.5418 6.44366 24 6.44366C28.4582 6.44366 32.5797 7.06909 35.657 8.13948C37.1863 8.67141 38.5667 9.3505 39.6042 10.2036C40.6278 11.0454 41.5563 12.2684 41.5563 13.8546Z" fill="currentColor" fill-rule="evenodd"></path>
+                </svg>
+            </div>
+            <h1 class="text-display-hero-mobile font-display-hero-mobile text-on-surface mb-2">每日财务管家</h1>
+            <p class="text-body-md font-body-md text-on-surface-variant">简约理财，从今天开始。安全、高效、透明。</p>
+        </div>
+
+        <!-- 登录表单区 -->
+        <div class="w-full max-w-[560px] bg-surface-container-lowest rounded-xl p-card-padding border border-outline-variant shadow-sm">
+            <div class="space-y-6">
+                <!-- 手机号输入 -->
+                <div class="flex flex-col gap-2">
+                    <label class="text-on-surface text-body-sm font-semibold">手机号码</label>
+                    <input id="phone-input" class="w-full h-touch-target-min px-4 rounded-lg border border-outline-variant bg-surface-container-low text-on-surface text-body-md placeholder:text-outline focus:border-primary focus:outline-none focus:ring-0" placeholder="请输入手机号" type="tel">
+                </div>
+
+                <!-- 昵称输入（注册时显示） -->
+                <div id="nickname-section" class="flex flex-col gap-2 hidden">
+                    <label class="text-on-surface text-body-sm font-semibold">昵称</label>
+                    <input id="nickname-input" class="w-full h-touch-target-min px-4 rounded-lg border border-outline-variant bg-surface-container-low text-on-surface text-body-md placeholder:text-outline focus:border-primary focus:outline-none focus:ring-0" placeholder="请输入昵称（可选）" type="text">
+                </div>
+
+                <!-- 密码输入 -->
+                <div class="flex flex-col gap-2">
+                    <label class="text-on-surface text-body-sm font-semibold">密码</label>
+                    <div class="relative">
+                        <input id="password" class="w-full h-touch-target-min px-4 pr-12 rounded-lg border border-outline-variant bg-surface-container-low text-on-surface text-body-md placeholder:text-outline focus:border-primary focus:outline-none focus:ring-0" maxlength="32" placeholder="请输入密码" type="password">
+                        <button id="toggle-password" class="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors" type="button">
+                            <span class="material-symbols-outlined text-[22px]">visibility</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 确认密码输入 -->
+                <div class="flex flex-col gap-2">
+                    <label class="text-on-surface text-body-sm font-semibold">确认密码</label>
+                    <div class="relative">
+                        <input id="confirm-password" class="w-full h-touch-target-min px-4 pr-12 rounded-lg border border-outline-variant bg-surface-container-low text-on-surface text-body-md placeholder:text-outline focus:border-primary focus:outline-none focus:ring-0" maxlength="32" placeholder="请再次输入密码" type="password">
+                        <button id="toggle-confirm-password" class="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors" type="button">
+                            <span class="material-symbols-outlined text-[22px]">visibility</span>
+                        </button>
+                    </div>
+                    <p id="password-error" class="text-body-sm text-danger-expense hidden">两次输入的密码不一致</p>
+                </div>
+
+                <!-- 登录/注册主按钮 → 调用后端 API -->
+                <button id="login-btn" class="w-full h-touch-target-min bg-primary text-on-primary rounded-full font-bold text-body-lg shadow-md hover:bg-primary-container transition-all active:scale-[0.98]">登录 / 注册</button>
+
+                <!-- 分割线 -->
+                <div class="flex items-center gap-4 py-2">
+                    <div class="flex-1 h-[1px] bg-outline-variant"></div>
+                    <span class="text-outline">其他登录方式</span>
+                    <div class="flex-1 h-[1px] bg-outline-variant"></div>
+                </div>
+
+                <!-- 第三方登录入口（微信、支付宝） -->
+                <div class="grid grid-cols-2 gap-4">
+                    <button class="flex items-center justify-center gap-2 h-touch-target-min border border-outline-variant rounded-lg hover:bg-surface-container transition-colors">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="#07C160"><path d="M9.5 4C5.36 4 2 6.69 2 10c0 1.89.88 3.58 2.28 4.78L4 18l2.5-1.36c.74.22 1.54.36 2.38.36.17 0 .33-.01.5-.02A5.56 5.56 0 019.5 14C9.5 10.69 12.86 8 17 1.42zM17 10c-3.87 0-7 2.69-7 6s3.13 6 7 6c.77 0 1.51-.12 2.2-.34L19 21l-1.09-2.18C19.27 18.13 20 17.02 20 15.5 20 12.69 17.87 10 17 10zm-3.5 3.5a1 1 0 110 2 1 1 0 010-2zm7 0a1 1 0 110 2 1 1 0 010-2z"/></svg>
+                        <span class="text-on-surface-variant text-body-sm font-medium">微信登录</span>
+                    </button>
+                    <button class="flex items-center justify-center gap-2 h-touch-target-min border border-outline-variant rounded-lg hover:bg-surface-container transition-colors">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="#12aaeb"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-2h2v2zm0-4h-2V7h2v6zm4 4h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                        <span class="text-on-surface-variant text-body-sm font-medium">支付宝</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 信任背书区：加密/报表/同步 -->
+        <div class="w-full max-w-[560px] mt-12 grid grid-cols-3 gap-4">
+            <div class="flex flex-col items-center gap-2">
+                <div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-primary">
+                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.18v8.87z"/></svg>
+                </div>
+                <span class="text-on-surface-variant">银行级加密</span>
+            </div>
+            <div class="flex flex-col items-center gap-2">
+                <div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-secondary">
+                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+                </div>
+                <span class="text-on-surface-variant">智能报表</span>
+            </div>
+            <div class="flex flex-col items-center gap-2">
+                <div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-tertiary">
+                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0020 12c0-4.42-3.58-8-8-8zm-1 4c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5h-2c0 1.66-1.34 3-3 3s-3-1.34-3-3 1.34-3 3-3v-3z"/></svg>
+                </div>
+                <span class="text-on-surface-variant">实时同步</span>
+            </div>
+        </div>
+
+        <!-- 协议声明 -->
+        <div class="mt-auto pt-10 flex flex-col items-center gap-4">
+            <p class="text-body-sm text-outline px-10 text-center">
+                登录即代表您同意 <a class="text-primary hover:underline" href="#">《用户服务协议》</a> 和 <a class="text-primary hover:underline" href="#">《隐私保护政策》</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            // 密码可见性切换
+            var toggleBtn = document.getElementById('toggle-password');
+            var passwordInput = document.getElementById('password');
+            var confirmToggleBtn = document.getElementById('toggle-confirm-password');
+            var confirmInput = document.getElementById('confirm-password');
+            var errorMsg = document.getElementById('password-error');
+
+            toggleBtn.addEventListener('click', function () {
+                var isPassword = passwordInput.type === 'password';
+                passwordInput.type = isPassword ? 'text' : 'password';
+                toggleBtn.querySelector('span').textContent = isPassword ? 'visibility_off' : 'visibility';
+            });
+
+            confirmToggleBtn.addEventListener('click', function () {
+                var isPassword = confirmInput.type === 'password';
+                confirmInput.type = isPassword ? 'text' : 'password';
+                confirmToggleBtn.querySelector('span').textContent = isPassword ? 'visibility_off' : 'visibility';
+            });
+
+            // 密码不一致时显示错误提示
+            function checkPasswordMatch() {
+                var pw = passwordInput.value.trim();
+                var cpw = confirmInput.value.trim();
+                if (cpw.length > 0 && pw !== cpw) {
+                    errorMsg.classList.remove('hidden');
+                } else {
+                    errorMsg.classList.add('hidden');
+                }
+            }
+            passwordInput.addEventListener('input', checkPasswordMatch);
+            confirmInput.addEventListener('input', checkPasswordMatch);
+
+            // 登录按钮
+            var loginBtn = document.getElementById('login-btn');
+            var phoneInput = document.getElementById('phone-input');
+            var nicknameInput = document.getElementById('nickname-input');
+            var nicknameSection = document.getElementById('nickname-section');
+
+            loginBtn.addEventListener('click', function () {
+                var phone = phoneInput.value.trim();
+                var password = passwordInput.value.trim();
+                var confirmPassword = confirmInput.value.trim();
+                var nickname = nicknameInput.value.trim();
+
+                if (!phone) { alert('请输入手机号'); return; }
+                if (!password) { alert('请输入密码'); return; }
+                if (!confirmPassword) { alert('请输入确认密码'); return; }
+                if (password !== confirmPassword) {
+                    errorMsg.classList.remove('hidden');
+                    alert('两次输入的密码不一致');
+                    return;
+                }
+
+                loginBtn.disabled = true;
+                loginBtn.textContent = '登录中...';
+
+                // 先尝试登录，如果用户不存在则自动注册
+                fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone: phone, password: password })
+                })
+                .then(function (res) { return res.json(); })
+                .then(function (result) {
+                    if (result.code === 0) {
+                        // 登录成功
+                        localStorage.setItem('token', result.data.token);
+                        window.location.href = 'pages/home.html';
+                    } else if (result.code === 404) {
+                        // 用户不存在，自动注册
+                        fetch('/api/auth/register', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ phone: phone, password: password, nickname: nickname })
+                        })
+                        .then(function (res) { return res.json(); })
+                        .then(function (result) {
+                            if (result.code === 0) {
+                                localStorage.setItem('token', result.data.token);
+                                window.location.href = 'pages/home.html';
+                            } else {
+                                alert(result.msg || '注册失败');
+                            }
+                        })
+                        .catch(function () { alert('网络错误，请稍后重试'); })
+                        .finally(function () {
+                            loginBtn.disabled = false;
+                            loginBtn.textContent = '登录 / 注册';
+                        });
+                    } else {
+                        alert(result.msg || '登录失败');
+                        loginBtn.disabled = false;
+                        loginBtn.textContent = '登录 / 注册';
+                    }
+                })
+                .catch(function () {
+                    alert('网络错误，请稍后重试');
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = '登录 / 注册';
+                });
+            });
+
+            // 输入密码时如果确认密码也有内容，检查是否一致
+            passwordInput.addEventListener('input', checkPasswordMatch);
+            confirmInput.addEventListener('input', checkPasswordMatch);
+        })();
+    </script>
+</body>
+</html>

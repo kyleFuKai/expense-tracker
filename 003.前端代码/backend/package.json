@@ -1,0 +1,19 @@
+{
+  "name": "expense-tracker-backend",
+  "version": "1.0.0",
+  "description": "每日财务管家 - 后端服务",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "node --watch app.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.1.1",
+    "mysql2": "^3.11.0"
+  }
+}

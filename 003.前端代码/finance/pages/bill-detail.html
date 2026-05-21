@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
+    <title>账单详情 - 每日财务管家</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+    <link href="../assets/css/base.css" rel="stylesheet">
+    <script src="../assets/js/auth.js"></script>
+    <script>Auth.check();</script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary": "#ffffff", "tertiary-fixed-dim": "#ffb95f",
+                        "on-surface": "#0b1c30", "on-primary-fixed": "#00174b",
+                        "on-primary": "#ffffff", "on-tertiary-fixed-variant": "#653e00",
+                        "inverse-on-surface": "#eaf1ff", "on-error-container": "#93000a",
+                        "inverse-primary": "#b4c5ff", "error-container": "#ffdad6",
+                        "warning-alert": "#F59E0B", "secondary-container": "#6cf8bb",
+                        "on-tertiary-fixed": "#2a1700", "primary-container": "#2563eb",
+                        "surface": "#f8f9ff", "on-tertiary": "#ffffff",
+                        "on-primary-container": "#eeefff", "error": "#ba1a1a",
+                        "danger-expense": "#EF4444", "primary": "#004ac6",
+                        "primary-fixed": "#dbe1ff", "on-secondary-fixed-variant": "#005236",
+                        "surface-container-highest": "#d3e4fe", "on-background": "#0b1c30",
+                        "outline-variant": "#c3c6d7", "tertiary-fixed": "#ffddb8",
+                        "tertiary": "#784b00", "bg-light": "#F8FAFC",
+                        "surface-bright": "#f8f9ff", "background": "#f8f9ff",
+                        "on-primary-fixed-variant": "#003ea8", "surface-container": "#e5eeff",
+                        "secondary-fixed-dim": "#4edea3", "inverse-surface": "#213145",
+                        "surface-dark": "#1E293B", "surface-container-lowest": "#ffffff",
+                        "secondary": "#006c49", "surface-container-low": "#eff4ff",
+                        "on-error": "#ffffff", "surface-tint": "#0053db",
+                        "surface-container-high": "#dce9ff", "secondary-fixed": "#6ffbbe",
+                        "on-tertiary-container": "#ffeedd", "on-secondary-container": "#00714d",
+                        "on-surface-variant": "#434655", "bg-dark": "#0F172A",
+                        "surface-dim": "#cbdbf5", "surface-variant": "#d3e4fe",
+                        "primary-fixed-dim": "#b4c5ff", "success-growth": "#10B981",
+                        "on-secondary-fixed": "#002113", "outline": "#737686",
+                        "tertiary-container": "#996100"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"
+                    },
+                    "spacing": {
+                        "base-unit": "4px", "touch-target-min": "44px",
+                        "container-margin": "16px", "card-padding": "20px", "gutter": "12px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter"], "display-hero-mobile": ["Inter"],
+                        "body-md": ["Inter"], "label-caps": ["Inter"],
+                        "display-hero": ["Inter"], "body-lg": ["Inter"],
+                        "body-sm": ["Inter"], "numeric-data": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "display-hero-mobile": ["28px", {"lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "display-hero": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "26px", "fontWeight": "400"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "numeric-data": ["20px", {"lineHeight": "24px", "fontWeight": "500"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-bg-light text-on-surface font-body-md min-h-screen flex flex-col">
+
+    <!-- ==================== 顶部导航栏 ==================== -->
+    <header class="sticky top-0 z-40 flex justify-between items-center px-container-margin py-3 w-full max-w-7xl mx-auto bg-surface/90 backdrop-blur-md border-b border-outline-variant/20 shadow-sm">
+        <div class="flex items-center gap-3">
+            <a href="home.html" class="w-11 h-11 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors active:scale-95">
+                <span class="material-symbols-outlined text-primary">arrow_back</span>
+            </a>
+            <span class="text-headline-md font-headline-md font-bold text-primary tracking-tight">账单详情</span>
+        </div>
+    </header>
+
+    <!-- ==================== 主内容区 ==================== -->
+    <main class="flex-grow w-full max-w-xl mx-auto px-container-margin py-8">
+
+        <!-- 加载状态 -->
+        <div id="loading-state" class="flex items-center justify-center py-20 text-on-surface-variant">
+            <span class="material-symbols-outlined animate-spin mr-2">progress_activity</span>
+            加载中...
+        </div>
+
+        <!-- 收据式账单详情卡片 -->
+        <div id="bill-detail" class="hidden bg-surface-container-lowest rounded-xl shadow-[0_12px_24px_rgba(0,0,0,0.05)] overflow-hidden flex flex-col relative">
+
+            <!-- 分类头部：图标 + 分类名 + 金额 -->
+            <div class="p-card-padding flex flex-col items-center border-b border-dashed border-outline-variant/40">
+                <div id="bill-icon-wrap" class="w-16 h-16 bg-primary-fixed text-on-primary-fixed-variant rounded-full flex items-center justify-center mb-4">
+                    <span id="bill-icon" class="material-symbols-outlined text-[32px]" style="font-variation-settings: 'FILL' 1;">more_horiz</span>
+                </div>
+                <h2 id="bill-category" class="font-headline-md text-headline-md text-on-surface-variant mb-1">--</h2>
+                <div class="flex items-baseline gap-1">
+                    <span id="bill-sign" class="font-display-hero-mobile text-display-hero-mobile text-danger-expense">-</span>
+                    <span id="bill-amount" class="font-display-hero-mobile text-display-hero-mobile text-danger-expense">0.00</span>
+                    <span class="font-label-caps text-label-caps text-on-surface-variant ml-1">CNY</span>
+                </div>
+            </div>
+
+            <!-- 账单明细列表 -->
+            <div class="p-card-padding space-y-6">
+                <!-- 交易时间 -->
+                <div class="flex justify-between items-center">
+                    <span class="font-label-caps text-label-caps text-on-surface-variant">交易时间</span>
+                    <span id="bill-time" class="font-body-md text-body-md text-on-surface">--</span>
+                </div>
+
+                <!-- 类型 -->
+                <div class="flex justify-between items-center">
+                    <span class="font-label-caps text-label-caps text-on-surface-variant">类型</span>
+                    <span id="bill-type" class="font-body-md text-body-md text-on-surface">--</span>
+                </div>
+
+                <!-- 备注信息 -->
+                <div id="remark-wrap" class="hidden flex-col gap-2 bg-surface-container-low p-4 rounded-lg">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="material-symbols-outlined text-body-sm text-outline">notes</span>
+                        <span class="font-label-caps text-label-caps text-on-surface-variant">备注</span>
+                    </div>
+                    <p id="bill-remark" class="font-body-md text-body-md text-on-surface italic leading-relaxed"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 操作按钮区 -->
+        <div id="action-buttons" class="hidden mt-10 flex flex-col gap-3">
+            <button id="btn-edit" class="w-full h-[44px] bg-primary text-on-primary rounded-xl font-headline-md flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all">
+                <span class="material-symbols-outlined">edit</span>修改账单
+            </button>
+            <button id="btn-delete" class="w-full h-[44px] border border-outline-variant text-danger-expense rounded-xl font-headline-md flex items-center justify-center gap-2 hover:bg-error-container hover:border-transparent active:scale-[0.98] transition-all">
+                <span class="material-symbols-outlined">delete</span>删除账单
+            </button>
+        </div>
+    </main>
+
+    <!-- ==================== 底部导航栏 ==================== -->
+    <nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-safe pt-2 bg-surface/80 backdrop-blur-xl border-t border-outline-variant/10 shadow-[0_-4px_12px_0_rgba(0,0,0,0.05)] rounded-t-xl">
+        <div id="bottom-nav"></div>
+    </nav>
+    <div class="h-24"></div>
+    <script src="../assets/js/nav.js"></script>
+    <script>Nav.init('home');</script>
+
+    <script>
+    (function () {
+        // 获取 URL 参数
+        var params = new URLSearchParams(window.location.search);
+        var billId = params.get('id');
+
+        if (!billId) {
+            window.location.href = 'home.html';
+            return;
+        }
+
+        // 加载账单详情
+        Auth.fetchApi('/bills/' + billId)
+        .then(function (result) {
+            if (result.code !== 0) {
+                window.location.href = 'home.html';
+                return;
+            }
+
+            var bill = result.data;
+            var isExpense = bill.type === 'EXPENSE';
+
+            // 图标
+            var icon = bill.category_icon || 'more_horiz';
+            document.getElementById('bill-icon').textContent = icon;
+
+            // 分类名
+            document.getElementById('bill-category').textContent = bill.category_name || '其他';
+
+            // 金额 + 符号
+            var sign = isExpense ? '-' : '+';
+            var colorClass = isExpense ? 'text-danger-expense' : 'text-success-growth';
+            document.getElementById('bill-sign').textContent = sign;
+            document.getElementById('bill-sign').className = 'font-display-hero-mobile text-display-hero-mobile ' + colorClass;
+            document.getElementById('bill-amount').textContent = parseFloat(bill.amount).toFixed(2);
+            document.getElementById('bill-amount').className = 'font-display-hero-mobile text-display-hero-mobile ' + colorClass;
+
+            // 时间（仅显示日期）
+            var timeStr = bill.bill_time ? bill.bill_time.substring(0, 10).replace(/-/g, '/') : '--';
+            document.getElementById('bill-time').textContent = timeStr;
+
+            // 类型
+            document.getElementById('bill-type').textContent = isExpense ? '支出' : '收入';
+
+            // 备注
+            if (bill.remark) {
+                document.getElementById('remark-wrap').classList.remove('hidden');
+                document.getElementById('remark-wrap').classList.add('flex');
+                document.getElementById('bill-remark').textContent = bill.remark;
+            }
+
+            // 显示详情和操作按钮
+            document.getElementById('loading-state').classList.add('hidden');
+            document.getElementById('bill-detail').classList.remove('hidden');
+            document.getElementById('action-buttons').classList.remove('hidden');
+
+            // 绑定编辑按钮
+            document.getElementById('btn-edit').addEventListener('click', function () {
+                window.location.href = 'record.html?edit=' + billId;
+            });
+        });
+
+        // 删除账单
+        document.getElementById('btn-delete').addEventListener('click', function () {
+            if (!confirm('确认删除此账单？')) return;
+
+            var btn = document.getElementById('btn-delete');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="material-symbols-outlined animate-spin">progress_activity</span>删除中...';
+
+            Auth.fetchApi('/bills/' + billId, { method: 'DELETE' })
+            .then(function (result) {
+                if (result.code === 0) {
+                    window.location.href = 'home.html';
+                } else {
+                    btn.disabled = false;
+                    btn.innerHTML = '<span class="material-symbols-outlined">delete</span>删除账单';
+                    alert(result.msg || '删除失败');
+                }
+            });
+        });
+    })();
+    </script>
+</body>
+</html>

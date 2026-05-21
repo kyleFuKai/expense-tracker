@@ -1,0 +1,205 @@
+<!DOCTYPE html><html lang="zh-CN"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>登录 - 每日财务管家</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-surface": "#213145",
+                        "success-growth": "#10B981",
+                        "tertiary-container": "#996100",
+                        "outline": "#737686",
+                        "bg-light": "#F8FAFC",
+                        "surface": "#f8f9ff",
+                        "inverse-on-surface": "#eaf1ff",
+                        "primary": "#004ac6",
+                        "on-secondary-container": "#00714d",
+                        "surface-tint": "#0053db",
+                        "error": "#ba1a1a",
+                        "outline-variant": "#c3c6d7",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "on-background": "#0b1c30",
+                        "background": "#f8f9ff",
+                        "danger-expense": "#EF4444",
+                        "on-error-container": "#93000a",
+                        "secondary-fixed-dim": "#4edea3",
+                        "on-tertiary-fixed": "#2a1700",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "inverse-primary": "#b4c5ff",
+                        "warning-alert": "#F59E0B",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed-variant": "#005236",
+                        "surface-dark": "#1E293B",
+                        "primary-fixed": "#dbe1ff",
+                        "error-container": "#ffdad6",
+                        "surface-container-low": "#eff4ff",
+                        "surface-container-high": "#dce9ff",
+                        "on-primary": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed": "#6ffbbe",
+                        "on-surface-variant": "#434655",
+                        "surface-variant": "#d3e4fe",
+                        "bg-dark": "#0F172A",
+                        "on-surface": "#0b1c30",
+                        "tertiary": "#784b00",
+                        "secondary": "#006c49",
+                        "surface-dim": "#cbdbf5",
+                        "on-primary-fixed": "#00174b",
+                        "on-primary-container": "#eeefff",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "surface-container": "#e5eeff",
+                        "secondary-container": "#6cf8bb",
+                        "tertiary-fixed": "#ffddb8",
+                        "on-secondary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "primary-container": "#2563eb",
+                        "surface-container-highest": "#d3e4fe",
+                        "on-secondary-fixed": "#002113",
+                        "on-tertiary-container": "#ffeedd",
+                        "surface-bright": "#f8f9ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "touch-target-min": "44px",
+                        "card-padding": "20px",
+                        "container-margin": "16px",
+                        "gutter": "12px",
+                        "base-unit": "4px"
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        input:focus {
+            box-shadow: 0 0 0 2px #2563eb33;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen font-['Inter']">
+<div class="flex flex-col min-h-screen items-center justify-center px-container-margin py-10">
+<!-- Focused Header (No Nav Rule) -->
+<div class="w-full max-w-[440px] flex justify-start mb-8">
+<button class="flex items-center text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+<span class="ml-2 text-body-md">返回</span>
+</button>
+</div>
+<!-- Brand & Hero Area -->
+<div class="w-full max-w-[440px] text-center mb-10">
+<div class="inline-flex items-center justify-center p-4 bg-primary rounded-xl mb-6 shadow-lg shadow-primary/20">
+<svg class="w-12 h-12 text-on-primary" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M39.5563 34.1455V13.8546C39.5563 15.708 36.8773 17.3437 32.7927 18.3189C30.2914 18.916 27.263 19.2655 24 19.2655C20.737 19.2655 17.7086 18.916 15.2073 18.3189C11.1227 17.3437 8.44365 15.708 8.44365 13.8546V34.1455C8.44365 35.9988 11.1227 37.6346 15.2073 38.6098C17.7086 39.2069 20.737 39.5564 24 39.5564C27.1288 39.5564 30.2914 39.2069 32.7927 38.6098C36.8773 37.6346 39.5563 35.9988 39.5563 34.1455Z" fill="currentColor"></path>
+<path clip-rule="evenodd" d="M10.4485 13.8519C10.4749 13.9271 10.6203 14.246 11.379 14.7361C12.298 15.3298 13.7492 15.9145 15.6717 16.3735C18.0007 16.9296 20.8712 17.2655 24 17.2655C27.1288 17.2655 29.9993 16.9296 32.3283 16.3735C34.2508 15.9145 35.702 15.3298 36.621 14.7361C37.3796 14.246 37.5251 13.9271 37.5515 13.8519C37.5287 13.7876 37.4333 13.5973 37.0635 13.2931C36.5266 12.8516 35.6288 12.3647 34.343 11.9175C31.79 11.0295 28.1333 10.4437 24 10.4437C19.8667 10.4437 16.2099 11.0295 13.657 11.9175C12.3712 12.3647 11.4734 12.8516 10.9365 13.2931C10.5667 13.5973 10.4713 13.7876 10.4485 13.8519ZM37.5563 18.7877C36.3176 19.3925 34.8502 19.8839 33.2571 20.2642C30.5836 20.9025 27.3973 21.2655 24 21.2655C20.6027 21.2655 17.4164 20.9025 14.7429 20.2642C13.1498 19.8839 11.6824 19.3925 10.4436 18.7877V34.1275C10.4515 34.1545 10.5427 34.4867 11.379 35.027C12.298 35.6207 13.7492 36.2054 15.6717 36.6644C18.0007 37.2205 20.8712 37.5564 24 37.5564C27.1288 37.5564 29.9993 37.2205 32.3283 36.6644C34.2508 36.2054 35.702 35.6207 36.621 35.027C37.4573 34.4867 37.5485 34.1546 37.5515 34.1275V18.7877ZM41.5563 13.8546V34.1455C41.5563 36.1078 40.158 37.5042 38.7915 38.3869C37.3498 39.3182 35.4192 40.0389 33.2571 40.5551C30.5836 41.1934 27.3973 41.5564 24 41.5564C20.6027 41.5564 17.4164 41.1934 14.7429 40.5551C12.5808 40.0389 10.6502 39.3182 9.20848 38.3869C7.84205 37.5042 6.44365 36.1078 6.44365 34.1455L6.44365 13.8546C6.44365 12.2684 7.37223 11.0454 8.39581 10.2036C9.43325 9.3505 10.8137 8.67141 12.343 8.13948C15.4203 7.06909 19.5418 6.44366 24 6.44366C28.4582 6.44366 32.5797 7.06909 35.657 8.13948C37.1863 8.67141 38.5667 9.3505 39.6042 10.2036C40.6278 11.0454 41.5563 12.2684 41.5563 13.8546Z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+<h1 class="text-[32px] font-bold tracking-tight text-on-surface mb-2">每日财务管家</h1>
+<p class="text-on-surface-variant text-body-md">简约理财，从今天开始。安全、高效、透明。</p>
+</div>
+<!-- Login Form Card -->
+<div class="w-full max-w-[440px] bg-surface-container-lowest rounded-xl p-card-padding border border-outline-variant shadow-sm">
+<div class="space-y-6">
+<!-- Phone Input Group -->
+<div class="flex flex-col gap-2">
+<label class="text-on-surface text-body-sm font-semibold">手机号码</label>
+<div class="flex gap-2">
+<div class="relative min-w-[100px]">
+<select class="w-full h-touch-target-min pl-3 pr-8 rounded-lg border border-outline-variant bg-surface-container-low text-on-surface text-body-md appearance-none focus:border-primary focus:outline-none focus:ring-0">
+<option value="+86">+86 中国</option>
+<option value="+852">+852 香港</option>
+<option value="+886">+886 台湾</option>
+<option value="+1">+1 美国</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" data-icon="expand_more">expand_more</span>
+</div>
+<input class="flex-1 h-touch-target-min px-4 rounded-lg border border-outline-variant bg-surface-container-low text-on-surface text-body-md placeholder:text-outline focus:border-primary focus:outline-none focus:ring-0" placeholder="请输入手机号" type="tel">
+</div>
+</div>
+<!-- OTP Input Group -->
+<div class="flex flex-col gap-2">
+<label class="text-on-surface text-body-sm font-semibold">验证码</label>
+<div class="flex gap-2">
+<input class="flex-1 h-touch-target-min px-4 rounded-lg border border-outline-variant bg-surface-container-low text-on-surface text-body-md placeholder:text-outline focus:border-primary focus:outline-none focus:ring-0" maxlength="6" placeholder="6位验证码" type="text">
+<button class="px-4 h-touch-target-min text-primary text-body-sm font-semibold border border-primary rounded-lg hover:bg-primary-container/10 transition-colors whitespace-nowrap">
+                            获取验证码
+                        </button>
+</div>
+</div>
+<!-- Primary Action -->
+<a href="{{DATA:SCREEN:SCREEN_18}}" class="block w-full">
+    <button class="w-full h-touch-target-min bg-primary text-on-primary rounded-full font-bold text-body-lg shadow-md hover:bg-primary-container transition-all active:scale-[0.98]">
+        登录 / 注册
+    </button>
+</a>
+<div class="flex items-center gap-4 py-2">
+<div class="flex-1 h-[1px] bg-outline-variant"></div>
+<span class="text-outline text-label-caps uppercase">其他方式</span>
+<div class="flex-1 h-[1px] bg-outline-variant"></div>
+</div>
+<!-- Social Login -->
+<div class="grid grid-cols-2 gap-4">
+<button class="flex items-center justify-center gap-2 h-touch-target-min border border-outline-variant rounded-lg hover:bg-surface-container transition-colors">
+<img alt="" class="w-5 h-5 grayscale opacity-70" data-alt="A minimalist vector icon of a popular chat application logo, styled in a subtle monochrome grey to match a clean finance app interface. The logo is centered in a white circle with a soft shadow on a clean, bright background representing digital trust." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3P9n5T6Xp9VFHFRybTf9UoD2scSZoaL1sQX47r4VqqyFGAkXRRThBn2DzzP2ahqOcIZQs90zMxGp5Wt7T4SrWFP2d38IJokhyYIjtOWfSn8ZHL7jJJHEvJSQlPZpJqiNFPcdutsHamOVP3Dg9ZqM5sJTVU5aiVsT2jjCKZKqQSZ62dMIupE71Fl8Ry8CuqojYOLhdbIm-sGMNJY5cb2QuXn9C2F7pUNN9kD_S8Asq9U242KMh0nt_DK8xXA_mwSQGuFl0N47630L6">
+<span class="text-on-surface-variant text-body-sm font-medium">微信登录</span>
+</button>
+<button class="flex items-center justify-center gap-2 h-touch-target-min border border-outline-variant rounded-lg hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[#12aaeb]" data-icon="account_balance_wallet" style="font-variation-settings: 'FILL' 1;">account_balance_wallet</span>
+<span class="text-on-surface-variant text-body-sm font-medium">支付宝</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Visual Anchor / Social Proof -->
+<div class="w-full max-w-[440px] mt-12 grid grid-cols-3 gap-4">
+<div class="flex flex-col items-center gap-2">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="shield_with_heart" style="font-variation-settings: 'FILL' 1;">shield_with_heart</span>
+</div>
+<span class="text-label-caps text-on-surface-variant">银行级加密</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined" data-icon="insights" style="font-variation-settings: 'FILL' 1;">insights</span>
+</div>
+<span class="text-label-caps text-on-surface-variant">智能报表</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined" data-icon="cloud_sync" style="font-variation-settings: 'FILL' 1;">cloud_sync</span>
+</div>
+<span class="text-label-caps text-on-surface-variant">实时同步</span>
+</div>
+</div>
+<!-- Footer Links -->
+<div class="mt-auto pt-10 flex flex-col items-center gap-4">
+<p class="text-body-sm text-outline px-10 text-center">
+                登录即代表您同意 
+                <a class="text-primary hover:underline" href="#">《用户服务协议》</a> 
+                和 
+                <a class="text-primary hover:underline" href="#">《隐私保护政策》</a>
+</p>
+</div>
+</div>
+
+
+
+
+
+
+</body></html>

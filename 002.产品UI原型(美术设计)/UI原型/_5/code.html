@@ -1,0 +1,268 @@
+<!DOCTYPE html><html lang="zh-CN" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>每日财务管家 - 预算设置</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary": "#ffffff",
+                    "tertiary-fixed-dim": "#ffb95f",
+                    "on-surface": "#0b1c30",
+                    "on-primary-fixed": "#00174b",
+                    "on-primary": "#ffffff",
+                    "on-tertiary-fixed-variant": "#653e00",
+                    "inverse-on-surface": "#eaf1ff",
+                    "on-error-container": "#93000a",
+                    "inverse-primary": "#b4c5ff",
+                    "error-container": "#ffdad6",
+                    "warning-alert": "#F59E0B",
+                    "secondary-container": "#6cf8bb",
+                    "on-tertiary-fixed": "#2a1700",
+                    "primary-container": "#2563eb",
+                    "surface": "#f8f9ff",
+                    "on-tertiary": "#ffffff",
+                    "on-primary-container": "#eeefff",
+                    "error": "#ba1a1a",
+                    "danger-expense": "#EF4444",
+                    "primary": "#004ac6",
+                    "primary-fixed": "#dbe1ff",
+                    "on-secondary-fixed-variant": "#005236",
+                    "surface-container-highest": "#d3e4fe",
+                    "on-background": "#0b1c30",
+                    "outline-variant": "#c3c6d7",
+                    "tertiary-fixed": "#ffddb8",
+                    "tertiary": "#784b00",
+                    "bg-light": "#F8FAFC",
+                    "surface-bright": "#f8f9ff",
+                    "background": "#f8f9ff",
+                    "on-primary-fixed-variant": "#003ea8",
+                    "surface-container": "#e5eeff",
+                    "secondary-fixed-dim": "#4edea3",
+                    "inverse-surface": "#213145",
+                    "surface-dark": "#1E293B",
+                    "surface-container-lowest": "#ffffff",
+                    "secondary": "#006c49",
+                    "surface-container-low": "#eff4ff",
+                    "on-error": "#ffffff",
+                    "surface-tint": "#0053db",
+                    "surface-container-high": "#dce9ff",
+                    "secondary-fixed": "#6ffbbe",
+                    "on-tertiary-container": "#ffeedd",
+                    "on-secondary-container": "#00714d",
+                    "on-surface-variant": "#434655",
+                    "bg-dark": "#0F172A",
+                    "surface-dim": "#cbdbf5",
+                    "surface-variant": "#d3e4fe",
+                    "primary-fixed-dim": "#b4c5ff",
+                    "success-growth": "#10B981",
+                    "on-secondary-fixed": "#002113",
+                    "outline": "#737686",
+                    "tertiary-container": "#996100"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "base-unit": "4px",
+                    "touch-target-min": "44px",
+                    "container-margin": "16px",
+                    "card-padding": "20px",
+                    "gutter": "12px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Inter"],
+                    "display-hero-mobile": ["Inter"],
+                    "body-md": ["Inter"],
+                    "label-caps": ["Inter"],
+                    "display-hero": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "numeric-data": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "display-hero-mobile": ["28px", {"lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "display-hero": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-lg": ["18px", {"lineHeight": "26px", "fontWeight": "400"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "numeric-data": ["20px", {"lineHeight": "24px", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9ff;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-40 flex justify-between items-center px-container-margin py-3 w-full max-w-7xl mx-auto bg-surface/90 backdrop-blur-md border-b border-outline-variant/20 shadow-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="account_balance_wallet">account_balance_wallet</span>
+<h1 class="text-headline-md font-headline-md font-bold text-primary tracking-tight">每日财务管家</h1>
+</div>
+<div class="flex gap-4">
+<button class="material-symbols-outlined text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200 p-2 rounded-full" data-icon="calendar_today">calendar_today</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200 p-2 rounded-full" data-icon="notifications">notifications</button>
+</div>
+</header>
+<main class="max-w-xl mx-auto px-container-margin py-6 space-y-6">
+<!-- Budget Overview Card -->
+<section class="bg-surface-container-lowest rounded-xl p-card-padding shadow-[0_4px_12px_0_rgba(0,0,0,0.05)] border border-outline-variant/10">
+<div class="flex justify-between items-start mb-4">
+<div>
+<p class="text-label-caps font-label-caps text-on-surface-variant mb-1 uppercase tracking-wider">本月支出进度</p>
+<h2 class="text-display-hero-mobile font-display-hero-mobile text-on-surface">¥4,280.00</h2>
+</div>
+<div class="text-right">
+<p class="text-label-caps font-label-caps text-on-surface-variant mb-1 uppercase tracking-wider">总预算</p>
+<p class="text-headline-md font-headline-md text-primary">¥6,000.00</p>
+</div>
+</div>
+<div class="space-y-2">
+<div class="w-full bg-surface-container-high h-3 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 71.3%"></div>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-body-sm font-body-sm text-on-surface-variant">已使用 71%</span>
+<span class="text-body-sm font-body-sm text-success-growth font-medium">剩余 ¥1,720.00</span>
+</div>
+</div>
+</section>
+<!-- Monthly Total Input -->
+<section class="space-y-3">
+<label class="text-label-caps font-label-caps text-on-surface-variant block uppercase px-1" for="total-budget">设置本月总预算</label>
+<div class="relative">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 text-body-lg font-body-lg text-outline">¥</span>
+<input class="w-full h- touch-target-min bg-surface-container-lowest border border-outline-variant rounded-xl pl-8 pr-4 text-headline-md font-headline-md text-on-surface focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" id="total-budget" placeholder="0.00" type="tel" value="6000.00">
+<button class="absolute right-3 top-1/2 -translate-y-1/2 bg-primary text-on-primary px-4 py-1.5 rounded-lg text-label-caps font-label-caps hover:brightness-110 transition-all">更新</button>
+</div>
+</section>
+<!-- Category Limits List -->
+<section class="space-y-4">
+<h3 class="text-headline-md font-headline-md text-on-surface px-1">分项预算</h3>
+<div class="grid gap-4">
+<!-- Food Category (Normal) -->
+<div class="bg-surface-container-lowest p-card-padding rounded-xl border border-outline-variant/10 shadow-sm transition-all hover:shadow-md">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="restaurant">restaurant</span>
+</div>
+<div>
+<p class="text-body-md font-body-md font-semibold text-on-surface">餐饮美食</p>
+<p class="text-body-sm font-body-sm text-on-surface-variant">¥1,200 / ¥2,000</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline hover:text-primary cursor-pointer" data-icon="edit">edit</span>
+</div>
+<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 60%"></div>
+</div>
+</div>
+<!-- Shopping Category (Over Budget) -->
+<div class="bg-surface-container-lowest p-card-padding rounded-xl border border-danger-expense/20 shadow-sm transition-all hover:shadow-md">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-error-container flex items-center justify-center text-danger-expense">
+<span class="material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span>
+</div>
+<div>
+<p class="text-body-md font-body-md font-semibold text-on-surface">购物社交</p>
+<p class="text-body-sm font-body-sm text-danger-expense font-medium">超出 ¥250.00</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline hover:text-primary cursor-pointer" data-icon="edit">edit</span>
+</div>
+<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+<div class="bg-danger-expense h-full rounded-full" style="width: 100%"></div>
+</div>
+<p class="mt-2 text-label-caps font-label-caps text-danger-expense flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="warning">warning</span> 已达预算 125%
+                    </p>
+</div>
+<!-- Transport Category (Normal) -->
+<div class="bg-surface-container-lowest p-card-padding rounded-xl border border-outline-variant/10 shadow-sm transition-all hover:shadow-md">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="directions_car">directions_car</span>
+</div>
+<div>
+<p class="text-body-md font-body-md font-semibold text-on-surface">交通出行</p>
+<p class="text-body-sm font-body-sm text-on-surface-variant">¥450 / ¥800</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline hover:text-primary cursor-pointer" data-icon="edit">edit</span>
+</div>
+<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 56.25%"></div>
+</div>
+</div>
+<!-- Housing (Normal) -->
+<div class="bg-surface-container-lowest p-card-padding rounded-xl border border-outline-variant/10 shadow-sm transition-all hover:shadow-md">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="home_work">home_work</span>
+</div>
+<div>
+<p class="text-body-md font-body-md font-semibold text-on-surface">住房物业</p>
+<p class="text-body-sm font-body-sm text-on-surface-variant">¥1,800 / ¥1,800</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline hover:text-primary cursor-pointer" data-icon="edit">edit</span>
+</div>
+<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+<div class="bg-warning-alert h-full rounded-full" style="width: 100%"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- New Category Button -->
+<button class="w-full h-touch-target-min border-2 border-dashed border-outline-variant rounded-xl flex items-center justify-center gap-2 text-on-surface-variant hover:border-primary hover:text-primary transition-all group">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform" data-icon="add">add</span>
+<span class="text-label-caps font-label-caps uppercase">添加预算分类</span>
+</button>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-safe pt-2 bg-surface/80 backdrop-blur-xl border-t border-outline-variant/10 shadow-[0_-4px_12px_0_rgba(0,0,0,0.05)] rounded-t-xl">
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-2 hover:text-primary transition-all duration-200" href="{{DATA:SCREEN:SCREEN_18}}">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="text-label-caps font-label-caps">首页</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-2xl px-4 py-2 scale-90 transition-all duration-200" href="{{DATA:SCREEN:SCREEN_9}}">
+<span class="material-symbols-outlined" data-icon="insights" style="font-variation-settings: 'FILL' 1;">insights</span>
+<span class="text-label-caps font-label-caps">煄计</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-2 hover:text-primary transition-all duration-200" href="{{DATA:SCREEN:SCREEN_7}}">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+<span class="text-label-caps font-label-caps">记账</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-2 hover:text-primary transition-all duration-200" href="{{DATA:SCREEN:SCREEN_2}}">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="text-label-caps font-label-caps">我的</span>
+</a>
+</nav>
+
+
+</body></html>

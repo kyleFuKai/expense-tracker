@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>预算设置 - 每日财务管家</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+    <link href="../assets/css/base.css" rel="stylesheet">
+    <script src="../assets/js/auth.js"></script>
+    <script>Auth.check();</script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary": "#ffffff", "tertiary-fixed-dim": "#ffb95f",
+                        "on-surface": "#0b1c30", "on-primary-fixed": "#00174b",
+                        "on-primary": "#ffffff", "on-tertiary-fixed-variant": "#653e00",
+                        "inverse-on-surface": "#eaf1ff", "on-error-container": "#93000a",
+                        "inverse-primary": "#b4c5ff", "error-container": "#ffdad6",
+                        "warning-alert": "#F59E0B", "secondary-container": "#6cf8bb",
+                        "on-tertiary-fixed": "#2a1700", "primary-container": "#2563eb",
+                        "surface": "#f8f9ff", "on-tertiary": "#ffffff",
+                        "on-primary-container": "#eeefff", "error": "#ba1a1a",
+                        "danger-expense": "#EF4444", "primary": "#004ac6",
+                        "primary-fixed": "#dbe1ff", "on-secondary-fixed-variant": "#005236",
+                        "surface-container-highest": "#d3e4fe", "on-background": "#0b1c30",
+                        "outline-variant": "#c3c6d7", "tertiary-fixed": "#ffddb8",
+                        "tertiary": "#784b00", "bg-light": "#F8FAFC",
+                        "surface-bright": "#f8f9ff", "background": "#f8f9ff",
+                        "on-primary-fixed-variant": "#003ea8", "surface-container": "#e5eeff",
+                        "secondary-fixed-dim": "#4edea3", "inverse-surface": "#213145",
+                        "surface-dark": "#1E293B", "surface-container-lowest": "#ffffff",
+                        "secondary": "#006c49", "surface-container-low": "#eff4ff",
+                        "on-error": "#ffffff", "surface-tint": "#0053db",
+                        "surface-container-high": "#dce9ff", "secondary-fixed": "#6ffbbe",
+                        "on-tertiary-container": "#ffeedd", "on-secondary-container": "#00714d",
+                        "on-surface-variant": "#434655", "bg-dark": "#0F172A",
+                        "surface-dim": "#cbdbf5", "surface-variant": "#d3e4fe",
+                        "primary-fixed-dim": "#b4c5ff", "success-growth": "#10B981",
+                        "on-secondary-fixed": "#002113", "outline": "#737686",
+                        "tertiary-container": "#996100"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"
+                    },
+                    "spacing": {
+                        "base-unit": "4px", "touch-target-min": "44px",
+                        "container-margin": "16px", "card-padding": "20px", "gutter": "12px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter"], "display-hero-mobile": ["Inter"],
+                        "body-md": ["Inter"], "label-caps": ["Inter"],
+                        "display-hero": ["Inter"], "body-lg": ["Inter"],
+                        "body-sm": ["Inter"], "numeric-data": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "display-hero-mobile": ["28px", {"lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "display-hero": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "26px", "fontWeight": "400"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "numeric-data": ["20px", {"lineHeight": "24px", "fontWeight": "500"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface min-h-screen pb-24">
+
+    <!-- ==================== 顶部导航栏 ==================== -->
+    <header class="sticky top-0 z-40 flex justify-between items-center px-container-margin py-3 w-full max-w-7xl mx-auto bg-surface/90 backdrop-blur-md border-b border-outline-variant/20 shadow-sm">
+        <div class="flex items-center gap-3">
+            <a href="settings.html" class="w-11 h-11 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors active:scale-95">
+                <span class="material-symbols-outlined text-primary">arrow_back</span>
+            </a>
+            <span class="text-headline-md font-headline-md font-bold text-primary tracking-tight">预算设置</span>
+        </div>
+    </header>
+
+    <!-- ==================== 主内容区 ==================== -->
+    <main class="max-w-3xl mx-auto px-container-margin py-6 space-y-6">
+
+        <!-- 加载状态 -->
+        <div id="loading-state" class="flex items-center justify-center py-20 text-on-surface-variant">
+            <span class="material-symbols-outlined animate-spin mr-2">progress_activity</span> 加载中...
+        </div>
+
+        <!-- 本月支出进度概览卡片 -->
+        <section id="progress-card" class="hidden bg-surface-container-lowest rounded-xl p-card-padding shadow-[0_4px_12px_0_rgba(0,0,0,0.05)] border border-outline-variant/10">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <p class="text-label-caps font-label-caps text-on-surface-variant mb-1 uppercase tracking-wider">本月支出进度</p>
+                    <h2 id="spent-amount" class="text-display-hero-mobile font-display-hero-mobile text-on-surface">¥0.00</h2>
+                </div>
+                <div class="text-right">
+                    <p class="text-label-caps font-label-caps text-on-surface-variant mb-1 uppercase tracking-wider">总预算</p>
+                    <p id="total-budget-display" class="text-headline-md font-headline-md text-primary">¥0.00</p>
+                </div>
+            </div>
+            <div class="space-y-2">
+                <div class="w-full bg-surface-container-high h-3 rounded-full overflow-hidden">
+                    <div id="progress-bar" class="bg-primary h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span id="progress-text" class="text-body-sm font-body-sm text-on-surface-variant">已使用 0%</span>
+                    <span id="remaining-text" class="text-body-sm font-body-sm text-success-growth font-medium">剩余 ¥0.00</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 总预算金额输入区 -->
+        <section id="budget-input-section" class="hidden space-y-3">
+            <label class="text-label-caps font-label-caps text-on-surface-variant block uppercase px-1" for="total-budget-input">设置本月总预算</label>
+            <div class="flex gap-2">
+                <div class="relative flex-1">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-body-lg font-body-lg text-outline">¥</span>
+                    <input class="w-full h-touch-target-min bg-surface-container-lowest border border-outline-variant rounded-xl pl-8 pr-4 text-headline-md font-headline-md text-on-surface focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" id="total-budget-input" placeholder="0.00" type="number" step="0.01" min="0">
+                </div>
+                <button id="btn-save-budget" class="bg-primary text-on-primary px-6 rounded-xl text-label-caps font-label-caps hover:brightness-110 transition-all">保存</button>
+            </div>
+        </section>
+
+        <!-- 分类预算进度 -->
+        <section id="category-section" class="hidden space-y-4">
+            <h3 class="text-headline-md font-headline-md text-on-surface px-1">分类预算</h3>
+            <div id="category-list" class="grid gap-4">
+                <!-- 动态渲染 -->
+            </div>
+        </section>
+
+        <!-- 添加分类预算按钮 -->
+        <button id="btn-add-category" class="hidden w-full h-touch-target-min border-2 border-dashed border-outline-variant rounded-xl flex items-center justify-center gap-2 text-on-surface-variant hover:border-primary hover:text-primary transition-all group">
+            <span class="material-symbols-outlined group-hover:scale-110 transition-transform">add</span>
+            <span class="text-label-caps font-label-caps uppercase">添加分类预算</span>
+        </button>
+
+        <!-- 暂无预算提示 -->
+        <div id="empty-state" class="hidden flex flex-col items-center justify-center py-16 text-on-surface-variant">
+            <span class="material-symbols-outlined text-[64px] mb-4 opacity-40">monitoring</span>
+            <p class="text-body-md">暂无分类预算</p>
+            <p class="text-body-sm mt-1">点击下方按钮添加分类预算</p>
+        </div>
+    </main>
+
+    <!-- ==================== 底部导航栏 ==================== -->
+    <nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-safe pt-2 bg-surface/80 backdrop-blur-xl border-t border-outline-variant/10 shadow-[0_-4px_12px_0_rgba(0,0,0,0.05)] rounded-t-xl">
+        <div id="bottom-nav"></div>
+    </nav>
+    <script src="../assets/js/nav.js"></script>
+    <script>Nav.init('settings');</script>
+
+    <!-- ==================== 添加分类预算弹窗 ==================== -->
+    <div id="dialog-overlay" class="fixed inset-0 z-[60] hidden items-end justify-center bg-black/40" onclick="closeDialog()">
+        <div class="w-full max-w-3xl bg-surface-container-lowest rounded-t-2xl p-card-padding pb-8 transition-transform duration-300" onclick="event.stopPropagation()">
+            <h2 id="dialog-title" class="text-headline-md font-headline-md text-on-surface mb-4">添加分类预算</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-body-sm text-on-surface-variant mb-1 block">选择分类</label>
+                    <select id="dialog-category" class="w-full h-11 bg-surface-container-lowest border border-outline-variant rounded-lg px-3 text-body-md">
+                        <option value="">请选择分类</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-body-sm text-on-surface-variant mb-1 block">月度预算金额</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-body-md text-outline">¥</span>
+                        <input id="dialog-amount" class="w-full h-11 bg-surface-container-lowest border border-outline-variant rounded-lg pl-7 pr-4 text-body-md" type="number" step="0.01" min="0" placeholder="0.00">
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="closeDialog()" class="flex-1 h-11 border border-outline-variant rounded-xl text-body-md text-on-surface-variant hover:bg-surface-container transition-all">取消</button>
+                    <button onclick="saveCategoryBudget()" class="flex-1 h-11 bg-primary text-on-primary rounded-xl text-body-md font-medium">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        var allCategories = [];
+        var existingBudgets = [];
+        var editBudgetId = null;
+
+        // 加载预算仪表盘
+        loadDashboard();
+
+        function loadDashboard() {
+            var now = new Date();
+            var month = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+
+            document.getElementById('loading-state').classList.remove('hidden');
+
+            Auth.fetchApi('/budgets/dashboard?month=' + month)
+            .then(function (result) {
+                document.getElementById('loading-state').classList.add('hidden');
+
+                if (result.code !== 0) return;
+
+                var data = result.data;
+
+                // 进度卡片
+                document.getElementById('progress-card').classList.remove('hidden');
+                document.getElementById('spent-amount').textContent = '¥' + data.spent.toFixed(2);
+                document.getElementById('total-budget-display').textContent = '¥' + data.total_budget.toFixed(2);
+
+                var progressBar = document.getElementById('progress-bar');
+                var pct = data.percent || 0;
+                progressBar.style.width = Math.min(pct, 100) + '%';
+                if (pct > 100) {
+                    progressBar.className = 'bg-danger-expense h-full rounded-full transition-all duration-500';
+                } else if (pct >= 80) {
+                    progressBar.className = 'bg-warning-alert h-full rounded-full transition-all duration-500';
+                } else {
+                    progressBar.className = 'bg-primary h-full rounded-full transition-all duration-500';
+                }
+
+                document.getElementById('progress-text').textContent = '已使用 ' + pct + '%';
+                var remaining = data.remaining;
+                var remainingEl = document.getElementById('remaining-text');
+                if (remaining >= 0) {
+                    remainingEl.textContent = '剩余 ¥' + remaining.toFixed(2);
+                    remainingEl.className = 'text-body-sm font-body-sm text-success-growth font-medium';
+                } else {
+                    remainingEl.textContent = '超出 ¥' + Math.abs(remaining).toFixed(2);
+                    remainingEl.className = 'text-body-sm font-body-sm text-danger-expense font-medium';
+                }
+
+                // 总预算输入
+                document.getElementById('budget-input-section').classList.remove('hidden');
+                document.getElementById('total-budget-input').value = data.total_budget > 0 ? data.total_budget : '';
+
+                // 分类预算
+                document.getElementById('category-section').classList.remove('hidden');
+                document.getElementById('btn-add-category').classList.remove('hidden');
+                existingBudgets = data.categories || [];
+
+                renderCategoryBudgets(data.categories);
+            });
+        }
+
+        function renderCategoryBudgets(cats) {
+            var container = document.getElementById('category-list');
+            var emptyState = document.getElementById('empty-state');
+
+            if (!cats || cats.length === 0) {
+                container.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                document.getElementById('category-section').classList.add('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            document.getElementById('category-section').classList.remove('hidden');
+
+            var html = '';
+            cats.forEach(function (cat) {
+                var pct = cat.percent || 0;
+                var barColor = 'bg-primary';
+                var borderClass = 'border-outline-variant/10';
+                var iconBg = 'bg-surface-container-high text-primary';
+                var amountText = '¥' + cat.spent.toFixed(2) + ' / ¥' + cat.budget_amount.toFixed(2);
+
+                if (pct > 100) {
+                    barColor = 'bg-danger-expense';
+                    borderClass = 'border-danger-expense/20';
+                    iconBg = 'bg-error-container text-danger-expense';
+                    amountText = '超出 ¥' + Math.abs(cat.remaining).toFixed(2);
+                } else if (pct >= 80) {
+                    barColor = 'bg-warning-alert';
+                }
+
+                var icon = cat.category_icon || 'more_horiz';
+
+                html += '<div class="bg-surface-container-lowest p-card-padding rounded-xl border ' + borderClass + ' shadow-sm transition-all hover:shadow-md">';
+                html += '<div class="flex items-center justify-between mb-3">';
+                html += '<div class="flex items-center gap-3">';
+                html += '<div class="w-10 h-10 rounded-full ' + iconBg + ' flex items-center justify-center">';
+                html += '<span class="material-symbols-outlined">' + icon + '</span>';
+                html += '</div>';
+                html += '<div>';
+                html += '<p class="text-body-md font-body-md font-semibold text-on-surface">' + cat.category_name + '</p>';
+                html += '<p class="text-body-sm font-body-sm ' + (pct > 100 ? 'text-danger-expense' : 'text-on-surface-variant') + ' font-medium">' + amountText + '</p>';
+                html += '</div>';
+                html += '</div>';
+                html += '<div class="flex items-center gap-2">';
+                html += '<span class="text-body-sm text-outline">' + pct + '%</span>';
+                html += '<span class="material-symbols-outlined text-outline hover:text-primary cursor-pointer edit-cat" data-budget-id="' + cat.budget_id + '">edit</span>';
+                html += '<span class="material-symbols-outlined text-outline hover:text-danger-expense cursor-pointer delete-cat" data-budget-id="' + cat.budget_id + '">delete</span>';
+                html += '</div>';
+                html += '</div>';
+                html += '<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">';
+                html += '<div class="' + barColor + ' h-full rounded-full" style="width: ' + Math.min(pct, 100) + '%"></div>';
+                html += '</div>';
+                if (pct > 100) {
+                    html += '<p class="mt-2 text-label-caps font-label-caps text-danger-expense flex items-center gap-1">';
+                    html += '<span class="material-symbols-outlined text-[14px]">warning</span> 超出预算 ' + (pct - 100) + '%';
+                    html += '</p>';
+                }
+                html += '</div>';
+            });
+            container.innerHTML = html;
+
+            // 绑定编辑/删除事件
+            container.querySelectorAll('.edit-cat').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    openEditDialog(parseInt(this.getAttribute('data-budget-id')));
+                });
+            });
+            container.querySelectorAll('.delete-cat').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    if (!confirm('确认停用此分类预算？')) return;
+                    var budgetId = parseInt(this.getAttribute('data-budget-id'));
+                    Auth.fetchApi('/budgets/' + budgetId, { method: 'DELETE' })
+                    .then(function () { loadDashboard(); });
+                });
+            });
+        }
+
+        // 保存总预算
+        document.getElementById('btn-save-budget').addEventListener('click', function () {
+            var val = parseFloat(document.getElementById('total-budget-input').value);
+            if (!val || val <= 0) {
+                alert('请输入有效金额');
+                return;
+            }
+            var btn = this;
+            btn.disabled = true;
+            btn.textContent = '保存中...';
+
+            Auth.fetchApi('/budgets', {
+                method: 'POST',
+                body: JSON.stringify({ category_id: 0, amount: val, period: 'MONTHLY' })
+            })
+            .then(function (result) {
+                btn.disabled = false;
+                btn.textContent = '保存';
+                if (result.code === 0) {
+                    loadDashboard();
+                } else {
+                    alert(result.msg || '保存失败');
+                }
+            })
+            .catch(function () {
+                btn.disabled = false;
+                btn.textContent = '保存';
+                alert('网络错误，请稍后重试');
+            });
+        });
+
+        // 添加分类预算
+        document.getElementById('btn-add-category').addEventListener('click', function () {
+            editBudgetId = null;
+            document.getElementById('dialog-title').textContent = '添加分类预算';
+            loadCategories();
+            document.getElementById('dialog-amount').value = '';
+            showDialog();
+        });
+
+        function openEditDialog(budgetId) {
+            editBudgetId = null;
+            document.getElementById('dialog-title').textContent = '修改分类预算';
+            // 从 existingBudgets 中找到对应的分类 ID
+            var budget = existingBudgets.find(function (b) { return b.budget_id === budgetId; });
+            var catId = budget ? budget.cat_id : null;
+            loadCategories(catId);
+            showDialog();
+        }
+
+        function loadCategories(selectedId) {
+            Auth.fetchApi('/categories?type=EXPENSE')
+            .then(function (result) {
+                if (result.code !== 0) return;
+                allCategories = result.data;
+                var select = document.getElementById('dialog-category');
+                // 过滤掉已有预算的分类
+                var existingIds = existingBudgets.map(function (b) { return b.budget_id; });
+                var options = '<option value="">请选择分类</option>';
+                allCategories.forEach(function (cat) {
+                    if (selectedId && cat.id === selectedId) {
+                        options += '<option value="' + cat.id + '" selected>' + cat.name + '</option>';
+                    } else if (existingIds.indexOf(cat.id) === -1 || cat.id === selectedId) {
+                        options += '<option value="' + cat.id + '">' + cat.name + '</option>';
+                    }
+                });
+                select.innerHTML = options;
+
+                // 如果编辑模式，预填金额
+                if (selectedId) {
+                    var budget = existingBudgets.find(function (b) { return b.cat_id === selectedId; });
+                    if (budget) {
+                        document.getElementById('dialog-amount').value = budget.budget_amount;
+                    }
+                }
+            });
+        }
+
+        function saveCategoryBudget() {
+            var catId = parseInt(document.getElementById('dialog-category').value);
+            var amount = parseFloat(document.getElementById('dialog-amount').value);
+            if (!catId) { alert('请选择分类'); return; }
+            if (!amount || amount <= 0) { alert('请输入有效金额'); return; }
+
+            Auth.fetchApi('/budgets', {
+                method: 'POST',
+                body: JSON.stringify({ category_id: catId, amount: amount, period: 'MONTHLY' })
+            })
+            .then(function (result) {
+                if (result.code === 0) {
+                    closeDialog();
+                    loadDashboard();
+                } else {
+                    alert(result.msg || '保存失败');
+                }
+            });
+        }
+
+        window.saveCategoryBudget = saveCategoryBudget;
+
+        // 弹窗控制
+        function showDialog() {
+            var overlay = document.getElementById('dialog-overlay');
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+        }
+
+        window.closeDialog = function () {
+            var overlay = document.getElementById('dialog-overlay');
+            overlay.classList.add('hidden');
+            overlay.classList.remove('flex');
+        };
+    })();
+    </script>
+</body>
+</html>
