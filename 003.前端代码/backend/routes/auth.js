@@ -15,11 +15,17 @@ router.post('/register', async (req, res) => {
     if (!/^\d{8,15}$/.test(phone.replace(/\s/g, ''))) {
         return res.status(400).json({ code: 400, msg: '手机号格式不正确' });
     }
+    if (password.length < 6 || password.length > 20) {
+        return res.status(400).json({ code: 400, msg: '密码长度需为6-20位' });
+    }
+    if (!/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/\d/.test(password) || !/[^a-zA-Z0-9]/.test(password)) {
+        return res.status(400).json({ code: 400, msg: '密码需包含大小写字母、数字和特殊字符' });
+    }
 
     try {
         const [existing] = await pool.query('SELECT id FROM user WHERE phone = ?', [phone]);
         if (existing.length > 0) {
-            return res.status(409).json({ code: 409, msg: '该手机号已注册' });
+            return res.status(409).json({ code: 409, msg: '操作失败' });
         }
 
         const hash = bcrypt.hashSync(password, 10);
@@ -48,7 +54,7 @@ router.post('/login', async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT id, phone, password_hash, nickname FROM user WHERE phone = ?', [phone]);
         if (rows.length === 0) {
-            return res.status(404).json({ code: 404, msg: '该手机号未注册' });
+            return res.status(401).json({ code: 401, msg: '手机号或密码错误' });
         }
 
         const user = rows[0];

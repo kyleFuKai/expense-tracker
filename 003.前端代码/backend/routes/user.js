@@ -111,8 +111,11 @@ router.put('/password', authMiddleware, async (req, res) => {
     if (!old_password || !new_password) {
         return res.status(400).json({ code: 400, msg: '旧密码和新密码不能为空' });
     }
-    if (new_password.length < 6) {
-        return res.status(400).json({ code: 400, msg: '密码长度不能少于6位' });
+    if (new_password.length < 6 || new_password.length > 20) {
+        return res.status(400).json({ code: 400, msg: '密码长度需为6-20位' });
+    }
+    if (!/[a-z]/.test(new_password) || !/[A-Z]/.test(new_password) || !/\d/.test(new_password) || !/[^a-zA-Z0-9]/.test(new_password)) {
+        return res.status(400).json({ code: 400, msg: '密码需包含大小写字母、数字和特殊字符' });
     }
     try {
         const [[user]] = await pool.query('SELECT password_hash FROM user WHERE id = ?', [req.user.id]);

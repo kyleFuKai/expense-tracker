@@ -1,6 +1,7 @@
 require('dotenv').config();
 const path = require('path');
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const authRoutes = require('./routes/auth');
 const billRoutes = require('./routes/bills');
 const userRoutes = require('./routes/user');
@@ -9,6 +10,24 @@ const budgetRoutes = require('./routes/budgets');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Auth rate limiter: 10 requests / 15 min per IP
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { code: 429, msg: '请求过于频繁，请稍后再试' }
+});
+
+// Global API rate limiter: 100 requests / 15 min per IP
+const globalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { code: 429, msg: '请求过于频繁，请稍后再试' }
+});
 
 // 前端静态文件（finance 目录）
 app.use(express.static(path.join(__dirname, '../finance')));
@@ -20,11 +39,11 @@ app.use('/uploads', express.static(path.join(__dirname, '../finance/uploads')));
 app.use(express.json());
 
 // API 路由
-app.use('/api/auth', authRoutes);
-app.use('/api/bills', billRoutes);
-app.use('/api/user', userRoutes);
-app.use('/api/categories', categoryRoutes);
-app.use('/api/budgets', budgetRoutes);
+app.use('/api/auth', authLimiter, authRoutes);
+app.use('/api/bills', globalLimiter, billRoutes);
+app.use('/api/user', globalLimiter, userRoutes);
+app.use('/api/categories', globalLimiter, categoryRoutes);
+app.use('/api/budgets', globalLimiter, budgetRoutes);
 
 // GET /api/health — 健康检查
 app.get('/api/health', (req, res) => {
