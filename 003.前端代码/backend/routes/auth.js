@@ -28,7 +28,7 @@ router.post('/register', async (req, res) => {
             return res.status(409).json({ code: 409, msg: '操作失败' });
         }
 
-        const hash = bcrypt.hashSync(password, 10);
+        const hash = await bcrypt.hash(password, 10);
         const displayNickname = nickname || phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
         const [result] = await pool.query(
             'INSERT INTO user (phone, password_hash, nickname) VALUES (?, ?, ?)',
@@ -50,6 +50,9 @@ router.post('/login', async (req, res) => {
     if (!phone || !password) {
         return res.status(400).json({ code: 400, msg: '手机号和密码不能为空' });
     }
+    if (!/^\d{8,15}$/.test(phone.replace(/\s/g, ''))) {
+        return res.status(400).json({ code: 400, msg: '手机号格式不正确' });
+    }
 
     try {
         const [rows] = await pool.query('SELECT id, phone, password_hash, nickname FROM user WHERE phone = ?', [phone]);
@@ -58,7 +61,7 @@ router.post('/login', async (req, res) => {
         }
 
         const user = rows[0];
-        if (!bcrypt.compareSync(password, user.password_hash)) {
+        if (!await bcrypt.compare(password, user.password_hash)) {
             return res.status(401).json({ code: 401, msg: '手机号或密码错误' });
         }
 

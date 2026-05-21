@@ -3,8 +3,8 @@
 # 修复：login 重试、JSON 解析、变量传递、FE SKIP 格式
 
 BASE="http://localhost:3000"
-PHONE="13900001111"
-PASS="13900001111"
+PHONE="13900002222"
+PASS="Test@13900002222"
 PASS_COUNT=0
 FAIL_COUNT=0
 TOTAL=0
@@ -127,67 +127,67 @@ assert_code "AUTH-07" "Empty password login" "400" "$(extract_code "$R")"
 
 # AUTH-08: Change password
 R=$(curl -s -X PUT "$BASE/api/user/password" -H "$AUTHH" -H "Content-Type: application/json" \
-    -d '{"old_password":"13900001111","new_password":"NewPass123"}')
+    -d '{"old_password":"Test@13900002222","new_password":"NewPass@123"}')
 assert_code "AUTH-08a" "Change password (old->new)" "0" "$(extract_code "$R")"
 
 LOGIN2=$(curl -s -X POST "$BASE/api/auth/login" -H "Content-Type: application/json" \
-    -d '{"phone":"13900001111","password":"NewPass123"}')
+    -d '{"phone":"13900002222","password":"NewPass@123"}')
 assert_code "AUTH-08b" "Login with new password" "0" "$(extract_code "$LOGIN2")"
 
 # Change back
 R=$(curl -s -X PUT "$BASE/api/user/password" -H "$AUTHH" -H "Content-Type: application/json" \
-    -d '{"old_password":"NewPass123","new_password":"13900001111"}')
+    -d '{"old_password":"NewPass@123","new_password":"Test@13900002222"}')
 assert_code "AUTH-08c" "Restore password" "0" "$(extract_code "$R")"
 
 # AUTH-09: Wrong old password
 R=$(curl -s -X PUT "$BASE/api/user/password" -H "$AUTHH" -H "Content-Type: application/json" \
-    -d '{"old_password":"wrongpassword","new_password":"NewPass456"}')
+    -d '{"old_password":"wrongpassword","new_password":"NewPass@456"}')
 assert_code "AUTH-09" "Wrong old password change" "401" "$(extract_code "$R")"
 
 # --- Black-box Negative ---
 R=$(curl -s -X POST "$BASE/api/auth/register" -H "Content-Type: application/json" \
-    -d '{"phone":"abc123","password":"123456"}')
+    -d '{"phone":"abc123","password":"Aa@123456"}')
 assert_code "AUTH-BN-01" "Phone with letters" "400" "$(extract_code "$R")"
 
 R=$(curl -s -X POST "$BASE/api/auth/register" -H "Content-Type: application/json" \
-    -d '{"phone":"1234567","password":"123456"}')
+    -d '{"phone":"1234567","password":"Aa@123456"}')
 assert_code "AUTH-BN-02" "Phone too short (7)" "400" "$(extract_code "$R")"
 
 R=$(curl -s -X POST "$BASE/api/auth/register" -H "Content-Type: application/json" \
-    -d '{"phone":"1234567890123456","password":"123456"}')
+    -d '{"phone":"1234567890123456","password":"Aa@123456"}')
 assert_code "AUTH-BN-03" "Phone too long (16)" "400" "$(extract_code "$R")"
 
 R=$(curl -s -X POST "$BASE/api/auth/register" -H "Content-Type: application/json" \
-    -d '{"phone":"","password":"123456"}')
+    -d '{"phone":"","password":"Aa@123456"}')
 assert_code "AUTH-BN-04" "Empty phone register" "400" "$(extract_code "$R")"
 
 R=$(curl -s -X POST "$BASE/api/auth/register" -H "Content-Type: application/json" \
-    -d '{"phone":"13899998888","password":"123"}')
+    -d '{"phone":"13888889999","password":"Aa@12"}')
 AUTHBN07_CODE=$(extract_code "$R")
 TOTAL=$((TOTAL + 1))
-if [ "$AUTHBN07_CODE" = "400" ] || [ "$AUTHBN07_CODE" = "0" ]; then
+if [ "$AUTHBN07_CODE" = "400" ]; then
     PASS_COUNT=$((PASS_COUNT + 1))
     echo "[PASS] AUTH-BN-07: Password short register handled (code=$AUTHBN07_CODE)"
 else
     FAIL_COUNT=$((FAIL_COUNT + 1))
-    echo "[FAIL] AUTH-BN-07: Password short register (expected 400 or 0, got=$AUTHBN07_CODE)"
+    echo "[FAIL] AUTH-BN-07: Password short register (expected 400, got=$AUTHBN07_CODE)"
 fi
 
 R=$(curl -s -X PUT "$BASE/api/user/password" -H "$AUTHH" -H "Content-Type: application/json" \
-    -d '{"old_password":"13900001111","new_password":"12345"}')
+    -d '{"old_password":"Test@13900002222","new_password":"12345"}')
 assert_code "AUTH-BN-08" "New password too short (5)" "400" "$(extract_code "$R")"
 
 # --- White-box ---
 R=$(curl -s -X POST "$BASE/api/auth/register" -H "Content-Type: application/json" \
-    -d '{"phone":"12 345","password":"123456"}')
+    -d '{"phone":"12 345","password":"Aa@123456"}')
 assert_code "AUTH-WB-01" "Phone with space (invalid)" "400" "$(extract_code "$R")"
 
 R=$(curl -s -X POST "$BASE/api/auth/register" -H "Content-Type: application/json" \
-    -d '{"phone":"12345678","password":"123456"}')
+    -d '{"phone":"12345678","password":"Aa@123456"}')
 assert_not_contains "AUTH-WB-02" "Phone 8 digits passes format" "格式不正确" "$R"
 
 R=$(curl -s -X POST "$BASE/api/auth/register" -H "Content-Type: application/json" \
-    -d '{"phone":"123456789012345","password":"123456"}')
+    -d '{"phone":"123456789012345","password":"Aa@123456"}')
 assert_not_contains "AUTH-WB-03" "Phone 15 digits passes format" "格式不正确" "$R"
 
 R=$(curl -s -X POST "$BASE/api/auth/register" -H "Content-Type: application/json" \
@@ -198,19 +198,19 @@ assert_contains "AUTH-WB-05" "Nickname in login response" '"nickname"' "$LOGIN_R
 
 # AUTH-WB-09: 6 char password
 R=$(curl -s -X PUT "$BASE/api/user/password" -H "$AUTHH" -H "Content-Type: application/json" \
-    -d '{"old_password":"13900001111","new_password":"123456"}')
+    -d '{"old_password":"Test@13900002222","new_password":"Aa@123"}')
 assert_code "AUTH-WB-09" "New pass 6 chars ok" "0" "$(extract_code "$R")"
 # Restore
 curl -s -X PUT "$BASE/api/user/password" -H "$AUTHH" -H "Content-Type: application/json" \
-    -d '{"old_password":"123456","new_password":"13900001111"}' > /dev/null 2>&1
+    -d '{"old_password":"Aa@123","new_password":"Test@13900002222"}' > /dev/null 2>&1
 
 # AUTH-WB-10: 5 char password
 R=$(curl -s -X PUT "$BASE/api/user/password" -H "$AUTHH" -H "Content-Type: application/json" \
-    -d '{"old_password":"13900001111","new_password":"12345"}')
+    -d '{"old_password":"Test@13900002222","new_password":"12345"}')
 assert_code "AUTH-WB-10" "New pass 5 chars rejected" "400" "$(extract_code "$R")"
 
 R=$(curl -s -X PUT "$BASE/api/user/password" -H "$AUTHH" -H "Content-Type: application/json" \
-    -d '{"old_password":"wrongpwd","new_password":"NewPwd123"}')
+    -d '{"old_password":"wrongpwd","new_password":"NewPwd@123"}')
 assert_code "AUTH-WB-11" "Wrong old password on change" "401" "$(extract_code "$R")"
 
 R=$(curl -s "$BASE/api/user/profile")
@@ -241,11 +241,11 @@ assert_code "USER-03" "Invalid token" "401" "$(extract_code "$R")"
 
 ORIG_NICK=$(echo "$R" | grep -o '"nickname":"[^"]*"' | head -1 | cut -d'"' -f4)
 R=$(curl -s -X PUT "$BASE/api/user/profile" -H "$AUTHH" -H "Content-Type: application/json" \
-    -d '{"nickname":"测试昵称Updated"}')
+    -d '{"nickname":"Nickname_Updated"}')
 assert_code "USER-04a" "Change nickname" "0" "$(extract_code "$R")"
 
 R2=$(curl -s "$BASE/api/user/profile" -H "$AUTHH")
-assert_contains "USER-04b" "Nickname verified changed" "测试昵称Updated" "$R2"
+assert_contains "USER-04b" "Nickname verified changed" "Nickname_Updated" "$R2"
 
 # Restore nickname
 curl -s -X PUT "$BASE/api/user/profile" -H "$AUTHH" -H "Content-Type: application/json" \
@@ -701,6 +701,50 @@ echo "[PASS] SEC-12: bcryptjs used (verified in middleware/auth.js source)"
 TOTAL=$((TOTAL + 1))
 PASS_COUNT=$((PASS_COUNT + 1))
 
+# --- Security: Password Complexity ---
+R=$(curl -s -X POST "$BASE/api/auth/register" -H "Content-Type: application/json" \
+    -d '{"phone":"13888880001","password":"aabbcc123"}')
+assert_code "SEC-13" "Register: no uppercase" "400" "$(extract_code "$R")"
+
+R=$(curl -s -X POST "$BASE/api/auth/register" -H "Content-Type: application/json" \
+    -d '{"phone":"13888880002","password":"AABBCC123"}')
+assert_code "SEC-14" "Register: no lowercase" "400" "$(extract_code "$R")"
+
+R=$(curl -s -X POST "$BASE/api/auth/register" -H "Content-Type: application/json" \
+    -d '{"phone":"13888880003","password":"AaBbCcDdd"}')
+assert_code "SEC-15" "Register: no digit" "400" "$(extract_code "$R")"
+
+R=$(curl -s -X POST "$BASE/api/auth/register" -H "Content-Type: application/json" \
+    -d '{"phone":"13888880004","password":"AaBb1234"}')
+assert_code "SEC-16" "Register: no special char" "400" "$(extract_code "$R")"
+
+R=$(curl -s -X PUT "$BASE/api/user/password" -H "$AUTHH" -H "Content-Type: application/json" \
+    -d '{"old_password":"Test@13900002222","new_password":"simplepass"}')
+assert_code "SEC-17" "Change pass: no complexity" "400" "$(extract_code "$R")"
+
+# --- Security: Bill Update Validation ---
+if [ -n "$BILL_01_ID" ]; then
+    R=$(curl -s -X PUT "$BASE/api/bills/$BILL_01_ID" -H "$AUTHH" -H "Content-Type: application/json" \
+        -d '{"amount":0}')
+    assert_code "SEC-18" "Update bill: zero amount" "400" "$(extract_code "$R")"
+
+    R=$(curl -s -X PUT "$BASE/api/bills/$BILL_01_ID" -H "$AUTHH" -H "Content-Type: application/json" \
+        -d '{"amount":-50}')
+    assert_code "SEC-19" "Update bill: negative amount" "400" "$(extract_code "$R")"
+
+    R=$(curl -s -X PUT "$BASE/api/bills/$BILL_01_ID" -H "$AUTHH" -H "Content-Type: application/json" \
+        -d '{"type":"INVALID_TYPE"}')
+    assert_code "SEC-20" "Update bill: invalid type" "400" "$(extract_code "$R")"
+else
+    echo "[SKIP] SEC-18/19/20: No bill ID from BILL-01"
+    TOTAL=$((TOTAL + 3))
+fi
+
+# --- Security: Register duplicate hides message ---
+R=$(curl -s -X POST "$BASE/api/auth/register" -H "Content-Type: application/json" \
+    -d "{\"phone\":\"$PHONE\",\"password\":\"$PASS\"}")
+assert_not_contains "SEC-21" "Duplicate register hides phone info" "已注册" "$R"
+
 # --- Boundary Tests ---
 R=$(curl -s -X POST "$BASE/api/bills" -H "$AUTHH" -H "Content-Type: application/json" \
     -d '{"type":"EXPENSE","amount":999999999.99,"category_id":'"$EXP_CAT_ID"'}')
@@ -729,12 +773,12 @@ LONG_REM=$(printf 'X%.0s' {1..500})
 R=$(curl -s -X POST "$BASE/api/bills" -H "$AUTHH" -H "Content-Type: application/json" \
     -d '{"type":"EXPENSE","amount":1,"category_id":'"$EXP_CAT_ID"',"remark":"'"$LONG_REM"'"}')
 TOTAL=$((TOTAL + 1))
-if echo "$R" | grep -q '"code":0'; then
+if [ "$(extract_code "$R")" = "400" ]; then
     PASS_COUNT=$((PASS_COUNT + 1))
-    echo "[PASS] BND-03: 500-char remark accepted"
+    echo "[PASS] BND-03: 500-char remark correctly rejected (max=200)"
 else
     FAIL_COUNT=$((FAIL_COUNT + 1))
-    echo "[FAIL] BND-03: 500-char remark rejected: $(extract_code "$R")"
+    echo "[FAIL] BND-03: 500-char remark expected 400, got: $(extract_code "$R")"
 fi
 
 R=$(curl -s "$BASE/api/bills?page=0" -H "$AUTHH")

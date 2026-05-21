@@ -11,11 +11,11 @@ echo ">>> Health"
 assert "health" '"status":"ok"' "$(curl -s $BASE/health)"
 
 echo ">>> Register"
-R=$(curl -s -X POST "$BASE/auth/register" -H "Content-Type: application/json" -d '{"phone":"13900001111","password":"13900001111","nickname":"TestUser"}')
+R=$(curl -s -X POST "$BASE/auth/register" -H "Content-Type: application/json" -d '{"phone":"13900002222","password":"Test@13900002222","nickname":"TestUser"}')
 if echo "$R" | grep -q '"code":0\|"code":409'; then echo "  OK"; PASS=$((PASS+1)); else echo "  FAIL: $R"; FAIL=$((FAIL+1)); fi
 
 echo ">>> Login"
-R=$(curl -s -X POST "$BASE/auth/login" -H "Content-Type: application/json" -d '{"phone":"13900001111","password":"13900001111"}')
+R=$(curl -s -X POST "$BASE/auth/login" -H "Content-Type: application/json" -d '{"phone":"13900002222","password":"Test@13900002222"}')
 TOKEN=$(echo "$R" | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
 [ -n "$TOKEN" ] && echo "  OK" && PASS=$((PASS+1)) || { echo "  FAIL"; FAIL=$((FAIL+1)); TOKEN=""; }
 
@@ -136,17 +136,17 @@ echo ">>> Bad token"
 assert "401" '"code":401' "$(curl -s "$BASE/user/profile" -H "Authorization: Bearer bad_token")"
 
 echo ">>> Duplicate register"
-assert "409" '"code":409' "$(curl -s -X POST "$BASE/auth/register" -H "Content-Type: application/json" -d '{"phone":"13900001111","password":"x"}')"
+assert "409" '"code":409' "$(curl -s -X POST "$BASE/auth/register" -H "Content-Type: application/json" -d '{"phone":"13900002222","password":"Test@Duplicate"}')"
 
 echo ">>> Wrong password"
-assert "401" '"code":401' "$(curl -s -X POST "$BASE/auth/login" -H "Content-Type: application/json" -d '{"phone":"13900001111","password":"wrong"}')"
+assert "401" '"code":401' "$(curl -s -X POST "$BASE/auth/login" -H "Content-Type: application/json" -d '{"phone":"13900002222","password":"wrong"}')"
 
 echo ">>> Unregistered phone"
 R=$(curl -s -X POST "$BASE/auth/login" -H "Content-Type: application/json" -d '{"phone":"19999999999","password":"x"}')
 if echo "$R" | grep -q '"code":4'; then echo "  OK: returns 4xx"; PASS=$((PASS+1)); else echo "  FAIL: $R"; FAIL=$((FAIL+1)); fi
 
 echo ">>> Empty password"
-assert "400" '"code":400' "$(curl -s -X POST "$BASE/auth/login" -H "Content-Type: application/json" -d '{"phone":"13900001111","password":""}')"
+assert "400" '"code":400' "$(curl -s -X POST "$BASE/auth/login" -H "Content-Type: application/json" -d '{"phone":"13900002222","password":""}')"
 
 echo ">>> Income bill"
 INC_CAT_ID=$(curl -s "$BASE/categories?type=INCOME" -H "Authorization: Bearer $TOKEN" | grep -o '"id":[0-9]*' | head -1 | cut -d: -f2)
@@ -156,16 +156,16 @@ INC_BILL_ID=$(echo "$R" | grep -o '"id":[0-9]*' | tail -1 | cut -d: -f2)
 [ -n "$INC_BILL_ID" ] && curl -s -X DELETE "$BASE/bills/$INC_BILL_ID" -H "Authorization: Bearer $TOKEN" > /dev/null
 
 echo ">>> Change password"
-assert "ok" '"code":0' "$(curl -s -X PUT "$BASE/user/password" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"old_password":"13900001111","new_password":"NewPass1"}')"
+assert "ok" '"code":0' "$(curl -s -X PUT "$BASE/user/password" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"old_password":"Test@13900002222","new_password":"Test@Pass1"}')"
 
 echo ">>> New password login"
-R=$(curl -s -X POST "$BASE/auth/login" -H "Content-Type: application/json" -d '{"phone":"13900001111","password":"NewPass1"}')
+R=$(curl -s -X POST "$BASE/auth/login" -H "Content-Type: application/json" -d '{"phone":"13900002222","password":"Test@Pass1"}')
 NEW_TOKEN=$(echo "$R" | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
 [ -n "$NEW_TOKEN" ] && echo "  OK" && PASS=$((PASS+1)) || { echo "  FAIL"; FAIL=$((FAIL+1)); }
 
 echo ">>> Restore password"
 TOKEN="$NEW_TOKEN"
-assert "ok" '"code":0' "$(curl -s -X PUT "$BASE/user/password" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"old_password":"NewPass1","new_password":"13900001111"}')"
+assert "ok" '"code":0' "$(curl -s -X PUT "$BASE/user/password" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"old_password":"Test@Pass1","new_password":"Test@13900002222"}')"
 
 fi
 

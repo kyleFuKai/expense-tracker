@@ -119,10 +119,10 @@ router.put('/password', authMiddleware, async (req, res) => {
     }
     try {
         const [[user]] = await pool.query('SELECT password_hash FROM user WHERE id = ?', [req.user.id]);
-        if (!user || !bcrypt.compareSync(old_password, user.password_hash)) {
+        if (!user || !await bcrypt.compare(old_password, user.password_hash)) {
             return res.status(401).json({ code: 401, msg: '旧密码错误' });
         }
-        const hash = bcrypt.hashSync(new_password, 10);
+        const hash = await bcrypt.hash(new_password, 10);
         await pool.query('UPDATE user SET password_hash = ? WHERE id = ?', [hash, req.user.id]);
         res.json({ code: 0, msg: '密码修改成功' });
     } catch (err) {

@@ -11,19 +11,19 @@ const budgetRoutes = require('./routes/budgets');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Auth rate limiter: 10 requests / 15 min per IP
+// Auth rate limiter: 30 requests / 15 min per IP
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 10,
+    max: 30,
     standardHeaders: true,
     legacyHeaders: false,
     message: { code: 429, msg: '请求过于频繁，请稍后再试' }
 });
 
-// Global API rate limiter: 100 requests / 15 min per IP
+// Global API rate limiter: 300 requests / 15 min per IP
 const globalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 100,
+    max: 300,
     standardHeaders: true,
     legacyHeaders: false,
     message: { code: 429, msg: '请求过于频繁，请稍后再试' }
@@ -53,6 +53,12 @@ app.get('/api/health', (req, res) => {
 // 404 处理（API 接口不存在）
 app.use((req, res) => {
     res.status(404).json({ code: 404, msg: '接口不存在' });
+});
+
+// 全局错误处理中间件
+app.use((err, req, res, next) => {
+    console.error(err);
+    res.status(err.status || 500).json({ code: err.status || 500, msg: '服务器错误' });
 });
 
 app.listen(PORT, () => {

@@ -13,4 +13,8 @@ const pool = mysql.createPool({
     dateStrings: true
 });
 
+pool.on('error', (err) => {
+    console.error('数据库连接池异常:', err);
+});
+
 module.exports = pool;

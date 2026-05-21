@@ -7,6 +7,9 @@ const router = express.Router();
 // GET /api/categories — 获取分类列表
 router.get('/', authMiddleware, async (req, res) => {
     const { type } = req.query; // expense / income
+    if (type && !['EXPENSE', 'INCOME'].includes(type.toUpperCase())) {
+        return res.status(400).json({ code: 400, msg: '分类类型不合法' });
+    }
     try {
         const conditions = ['user_id = ? OR user_id = 0'];
         const params = [req.user.id];

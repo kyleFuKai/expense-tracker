@@ -58,7 +58,7 @@ router.get('/', async (req, res) => {
 
         res.json({ code: 0, data: { list: rows, total, page, pageSize } });
     } catch (err) {
-        console.error('get bills error:', err);
+        logger.error('get bills error:', err);
         res.status(500).json({ code: 500, msg: '获取账单失败' });
     }
 });
@@ -79,7 +79,7 @@ router.get('/:id', async (req, res) => {
         }
         res.json({ code: 0, data: bill });
     } catch (err) {
-        console.error('get bill error:', err);
+        logger.error('get bill error:', err);
         res.status(500).json({ code: 500, msg: '获取账单失败' });
     }
 });
@@ -104,7 +104,7 @@ router.post('/', async (req, res) => {
         );
         res.json({ code: 0, data: { id: result.insertId } });
     } catch (err) {
-        console.error('create bill error:', err);
+        logger.error('create bill error:', err);
         res.status(500).json({ code: 500, msg: '创建账单失败' });
     }
 });
@@ -129,8 +129,18 @@ router.put('/:id', async (req, res) => {
 
         const fields = [];
         const params = [];
-        if (type) { fields.push('type = ?'); params.push(type.toUpperCase()); }
-        if (amount !== undefined) { fields.push('amount = ?'); params.push(parseFloat(amount)); }
+        if (type) {
+            if (!['EXPENSE', 'INCOME'].includes(type.toUpperCase())) {
+                return res.status(400).json({ code: 400, msg: '类型不合法' });
+            }
+            fields.push('type = ?'); params.push(type.toUpperCase());
+        }
+        if (amount !== undefined) {
+            if (parseFloat(amount) <= 0) {
+                return res.status(400).json({ code: 400, msg: '金额必须大于 0' });
+            }
+            fields.push('amount = ?'); params.push(parseFloat(amount));
+        }
         if (category_id) { fields.push('category_id = ?'); params.push(parseInt(category_id)); }
         if (remark !== undefined) { fields.push('remark = ?'); params.push(remark); }
         if (bill_time) { fields.push('bill_time = ?'); params.push(bill_time); }
@@ -143,7 +153,7 @@ router.put('/:id', async (req, res) => {
         await pool.query(`UPDATE bill SET ${fields.join(', ')} WHERE id = ?`, params);
         res.json({ code: 0, data: { id: req.params.id } });
     } catch (err) {
-        console.error('update bill error:', err);
+        logger.error('update bill error:', err);
         res.status(500).json({ code: 500, msg: '更新账单失败' });
     }
 });
@@ -162,7 +172,7 @@ router.delete('/:id', async (req, res) => {
         await pool.query('DELETE FROM bill WHERE id = ? AND user_id = ?', [req.params.id, user.id]);
         res.json({ code: 0, data: { id: req.params.id } });
     } catch (err) {
-        console.error('delete bill error:', err);
+        logger.error('delete bill error:', err);
         res.status(500).json({ code: 500, msg: '删除账单失败' });
     }
 });
@@ -235,7 +245,7 @@ router.get('/stats/month', async (req, res) => {
             }
         });
     } catch (err) {
-        console.error('stats error:', err);
+        logger.error('stats error:', err);
         res.status(500).json({ code: 500, msg: '获取统计失败' });
     }
 });
