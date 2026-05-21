@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
     <link href="assets/css/base.css" rel="stylesheet">
+    <script src="assets/js/auth.js"></script>
     <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -120,6 +121,11 @@
                         </button>
                     </div>
                     <p id="password-error" class="text-body-sm text-danger-expense hidden">两次输入的密码不一致</p>
+                </div>
+
+                <!-- 忘记密码链接 -->
+                <div class="text-right">
+                    <a href="pages/forgot-password.html" class="text-body-sm text-primary font-medium hover:underline">忘记密码？</a>
                 </div>
 
                 <!-- 登录/注册主按钮 → 调用后端 API -->
@@ -235,7 +241,7 @@
                 loginBtn.textContent = '登录中...';
 
                 // 先尝试登录，如果用户不存在则自动注册
-                fetch('/api/auth/login', {
+                fetch(API_BASE + '/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ phone: phone, password: password })
@@ -248,7 +254,7 @@
                         window.location.href = 'pages/home.html';
                     } else if (result.code === 404) {
                         // 用户不存在，自动注册
-                        fetch('/api/auth/register', {
+                        fetch(API_BASE + '/api/auth/register', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ phone: phone, password: password, nickname: nickname })

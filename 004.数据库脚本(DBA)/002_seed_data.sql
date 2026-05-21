@@ -26,38 +26,53 @@ INSERT INTO `category` (`name`, `icon`, `type`, `parent_id`, `sort_order`, `is_p
 
 -- ---------------------------------------------------------------------------
 -- 支出分类 — 二级分类
+-- 使用子查询动态获取一级分类 ID，避免硬编码
 -- ---------------------------------------------------------------------------
--- 餐饮美食 (parent_id=1)
-INSERT INTO `category` (`name`, `icon`, `type`, `parent_id`, `sort_order`, `is_preset`) VALUES
-('早餐',        'bakery_dining', 'EXPENSE', 1, 1,  1),
-('午餐',        'restaurant',    'EXPENSE', 1, 2,  1),
-('晚餐',        'dining',        'EXPENSE', 1, 3,  1),
-('咖啡茶饮',    'coffee',        'EXPENSE', 1, 4,  1),
-('零食小吃',    'cookie',        'EXPENSE', 1, 5,  1);
+-- 餐饮美食
+INSERT INTO `category` (`name`, `icon`, `type`, `parent_id`, `sort_order`, `is_preset`)
+SELECT '早餐',        'bakery_dining', 'EXPENSE', id, 1, 1 FROM `category` WHERE name = '餐饮美食' AND type = 'EXPENSE' AND parent_id = 0;
+INSERT INTO `category` (`name`, `icon`, `type`, `parent_id`, `sort_order`, `is_preset`)
+SELECT '午餐',        'restaurant',    'EXPENSE', id, 2, 1 FROM `category` WHERE name = '餐饮美食' AND type = 'EXPENSE' AND parent_id = 0;
+INSERT INTO `category` (`name`, `icon`, `type`, `parent_id`, `sort_order`, `is_preset`)
+SELECT '晚餐',        'dining',        'EXPENSE', id, 3, 1 FROM `category` WHERE name = '餐饮美食' AND type = 'EXPENSE' AND parent_id = 0;
+INSERT INTO `category` (`name`, `icon`, `type`, `parent_id`, `sort_order`, `is_preset`)
+SELECT '咖啡茶饮',    'coffee',        'EXPENSE', id, 4, 1 FROM `category` WHERE name = '餐饮美食' AND type = 'EXPENSE' AND parent_id = 0;
+INSERT INTO `category` (`name`, `icon`, `type`, `parent_id`, `sort_order`, `is_preset`)
+SELECT '零食小吃',    'cookie',        'EXPENSE', id, 5, 1 FROM `category` WHERE name = '餐饮美食' AND type = 'EXPENSE' AND parent_id = 0;
 
--- 交通出行 (parent_id=2)
-INSERT INTO `category` (`name`, `icon`, `type`, `parent_id`, `sort_order`, `is_preset`) VALUES
-('公交地铁',    'subway',        'EXPENSE', 2, 1,  1),
-('打车租车',    'local_taxi',    'EXPENSE', 2, 2,  1),
-('私家车加油',  'local_gas_station', 'EXPENSE', 2, 3, 1),
-('停车费',      'local_parking', 'EXPENSE', 2, 4,  1);
+-- 交通出行
+INSERT INTO `category` (`name`, `icon`, `type`, `parent_id`, `sort_order`, `is_preset`)
+SELECT '公交地铁',    'subway',        'EXPENSE', id, 1, 1 FROM `category` WHERE name = '交通出行' AND type = 'EXPENSE' AND parent_id = 0;
+INSERT INTO `category` (`name`, `icon`, `type`, `parent_id`, `sort_order`, `is_preset`)
+SELECT '打车租车',    'local_taxi',    'EXPENSE', id, 2, 1 FROM `category` WHERE name = '交通出行' AND type = 'EXPENSE' AND parent_id = 0;
+INSERT INTO `category` (`name`, `icon`, `type`, `parent_id`, `sort_order`, `is_preset`)
+SELECT '私家车加油',  'local_gas_station', 'EXPENSE', id, 3, 1 FROM `category` WHERE name = '交通出行' AND type = 'EXPENSE' AND parent_id = 0;
+INSERT INTO `category` (`name`, `icon`, `type`, `parent_id`, `sort_order`, `is_preset`)
+SELECT '停车费',      'local_parking', 'EXPENSE', id, 4, 1 FROM `category` WHERE name = '交通出行' AND type = 'EXPENSE' AND parent_id = 0;
 
--- 购物消费 (parent_id=3)
-INSERT INTO `category` (`name`, `icon`, `type`, `parent_id`, `sort_order`, `is_preset`) VALUES
-('日用百货',    'cart',          'EXPENSE', 3, 1,  1),
-('服饰鞋包',    'checkroom',     'EXPENSE', 3, 2,  1),
-('数码产品',    'devices',       'EXPENSE', 3, 3,  1),
-('美妆护肤',    'visibility',    'EXPENSE', 3, 4,  1);
+-- 购物消费
+INSERT INTO `category` (`name`, `icon`, `type`, `parent_id`, `sort_order`, `is_preset`)
+SELECT '日用百货',    'cart',          'EXPENSE', id, 1, 1 FROM `category` WHERE name = '购物消费' AND type = 'EXPENSE' AND parent_id = 0;
+INSERT INTO `category` (`name`, `icon`, `type`, `parent_id`, `sort_order`, `is_preset`)
+SELECT '服饰鞋包',    'checkroom',     'EXPENSE', id, 2, 1 FROM `category` WHERE name = '购物消费' AND type = 'EXPENSE' AND parent_id = 0;
+INSERT INTO `category` (`name`, `icon`, `type`, `parent_id`, `sort_order`, `is_preset`)
+SELECT '数码产品',    'devices',       'EXPENSE', id, 3, 1 FROM `category` WHERE name = '购物消费' AND type = 'EXPENSE' AND parent_id = 0;
+INSERT INTO `category` (`name`, `icon`, `type`, `parent_id`, `sort_order`, `is_preset`)
+SELECT '美妆护肤',    'visibility',    'EXPENSE', id, 4, 1 FROM `category` WHERE name = '购物消费' AND type = 'EXPENSE' AND parent_id = 0;
 
--- 休闲娱乐 (parent_id=4)
-INSERT INTO `category` (`name`, `icon`, `type`, `parent_id`, `sort_order`, `is_preset`) VALUES
-('电影演出',    'theater_comedy','EXPENSE', 4, 1,  1),
-('运动健身',    'fitness_center','EXPENSE', 4, 2,  1),
-('旅游度假',    'flight',        'EXPENSE', 4, 3,  1),
-('游戏充值',    'sports_esports','EXPENSE', 4, 4,  1);
+-- 休闲娱乐
+INSERT INTO `category` (`name`, `icon`, `type`, `parent_id`, `sort_order`, `is_preset`)
+SELECT '电影演出',    'theater_comedy','EXPENSE', id, 1, 1 FROM `category` WHERE name = '休闲娱乐' AND type = 'EXPENSE' AND parent_id = 0;
+INSERT INTO `category` (`name`, `icon`, `type`, `parent_id`, `sort_order`, `is_preset`)
+SELECT '运动健身',    'fitness_center','EXPENSE', id, 2, 1 FROM `category` WHERE name = '休闲娱乐' AND type = 'EXPENSE' AND parent_id = 0;
+INSERT INTO `category` (`name`, `icon`, `type`, `parent_id`, `sort_order`, `is_preset`)
+SELECT '旅游度假',    'flight',        'EXPENSE', id, 3, 1 FROM `category` WHERE name = '休闲娱乐' AND type = 'EXPENSE' AND parent_id = 0;
+INSERT INTO `category` (`name`, `icon`, `type`, `parent_id`, `sort_order`, `is_preset`)
+SELECT '游戏充值',    'sports_esports','EXPENSE', id, 4, 1 FROM `category` WHERE name = '休闲娱乐' AND type = 'EXPENSE' AND parent_id = 0;
 
 -- ---------------------------------------------------------------------------
 -- 收入分类 (INCOME) — 一级分类
+-- 先插入一级分类，记录其 AUTO_INCREMENT ID
 -- ---------------------------------------------------------------------------
 INSERT INTO `category` (`name`, `icon`, `type`, `parent_id`, `sort_order`, `is_preset`) VALUES
 ('工资薪酬', 'payments',      'INCOME', 0, 1,  1),
@@ -69,18 +84,23 @@ INSERT INTO `category` (`name`, `icon`, `type`, `parent_id`, `sort_order`, `is_p
 
 -- ---------------------------------------------------------------------------
 -- 收入分类 — 二级分类
+-- 使用子查询动态获取一级分类 ID，避免硬编码
 -- ---------------------------------------------------------------------------
--- 工资薪酬 (parent_id=13)
-INSERT INTO `category` (`name`, `icon`, `type`, `parent_id`, `sort_order`, `is_preset`) VALUES
-('月薪',   'account_balance', 'INCOME', 13, 1, 1),
-('年终奖', 'emoji_events',    'INCOME', 13, 2, 1),
-('绩效奖', 'stars',           'INCOME', 13, 3, 1);
+-- 工资薪酬
+INSERT INTO `category` (`name`, `icon`, `type`, `parent_id`, `sort_order`, `is_preset`)
+SELECT '月薪',   'account_balance', 'INCOME', id, 1, 1 FROM `category` WHERE name = '工资薪酬' AND type = 'INCOME' AND parent_id = 0;
+INSERT INTO `category` (`name`, `icon`, `type`, `parent_id`, `sort_order`, `is_preset`)
+SELECT '年终奖', 'emoji_events',    'INCOME', id, 2, 1 FROM `category` WHERE name = '工资薪酬' AND type = 'INCOME' AND parent_id = 0;
+INSERT INTO `category` (`name`, `icon`, `type`, `parent_id`, `sort_order`, `is_preset`)
+SELECT '绩效奖', 'stars',           'INCOME', id, 3, 1 FROM `category` WHERE name = '工资薪酬' AND type = 'INCOME' AND parent_id = 0;
 
--- 理财收益 (parent_id=15)
-INSERT INTO `category` (`name`, `icon`, `type`, `parent_id`, `sort_order`, `is_preset`) VALUES
-('基金收益', 'show_chart',     'INCOME', 15, 1, 1),
-('股票收益', 'trending_up',    'INCOME', 15, 2, 1),
-('利息收入', 'savings',        'INCOME', 15, 3, 1);
+-- 理财收益
+INSERT INTO `category` (`name`, `icon`, `type`, `parent_id`, `sort_order`, `is_preset`)
+SELECT '基金收益', 'show_chart',     'INCOME', id, 1, 1 FROM `category` WHERE name = '理财收益' AND type = 'INCOME' AND parent_id = 0;
+INSERT INTO `category` (`name`, `icon`, `type`, `parent_id`, `sort_order`, `is_preset`)
+SELECT '股票收益', 'trending_up',    'INCOME', id, 2, 1 FROM `category` WHERE name = '理财收益' AND type = 'INCOME' AND parent_id = 0;
+INSERT INTO `category` (`name`, `icon`, `type`, `parent_id`, `sort_order`, `is_preset`)
+SELECT '利息收入', 'savings',        'INCOME', id, 3, 1 FROM `category` WHERE name = '理财收益' AND type = 'INCOME' AND parent_id = 0;
 
 
 -- ============================================================================

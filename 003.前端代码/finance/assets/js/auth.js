@@ -5,10 +5,13 @@
      2. 调用 Auth.check() 验证登录状态，未登录则跳转 index.html
    ======================================================================== */
 
+// ==================== 后端切换 ====================
+// Node.js 后端: var API_BASE = 'http://localhost:3000';
+var API_BASE = 'http://localhost:8080';
+// ================================================
+
 var Auth = (function () {
     'use strict';
-
-    var API_BASE = ''; // 同域部署，直接使用相对路径
 
     function getToken() {
         return localStorage.getItem('token') || '';
@@ -60,7 +63,7 @@ var Auth = (function () {
         if (!headers['Content-Type'] && options.body && !(options.body instanceof FormData)) {
             headers['Content-Type'] = 'application/json';
         }
-        return fetch('/api' + url, Object.assign({}, options, { headers: headers }))
+        return fetch(API_BASE + '/api' + url, Object.assign({}, options, { headers: headers }))
             .then(function (res) {
                 return res.json().then(function (data) {
                     if (res.status === 401) {
