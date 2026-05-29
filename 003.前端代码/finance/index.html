@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link href="data:," rel="icon">
     <title>登录 - 每日财务管家</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
@@ -91,7 +92,7 @@
                 <!-- 手机号输入 -->
                 <div class="flex flex-col gap-2">
                     <label class="text-on-surface text-body-sm font-semibold">手机号码</label>
-                    <input id="phone-input" class="w-full h-touch-target-min px-4 rounded-lg border border-outline-variant bg-surface-container-low text-on-surface text-body-md placeholder:text-outline focus:border-primary focus:outline-none focus:ring-0" placeholder="请输入手机号" type="tel">
+                    <input id="phone-input" class="w-full h-touch-target-min px-4 rounded-lg border border-outline-variant bg-surface-container-low text-on-surface text-body-md placeholder:text-outline focus:border-primary focus:outline-none focus:ring-0" placeholder="请输入手机号" type="text" inputmode="tel">
                 </div>
 
                 <!-- 昵称输入（注册时显示） -->
@@ -112,7 +113,7 @@
                 </div>
 
                 <!-- 确认密码输入 -->
-                <div class="flex flex-col gap-2">
+                <div id="confirm-password-section" class="flex flex-col gap-2 hidden">
                     <label class="text-on-surface text-body-sm font-semibold">确认密码</label>
                     <div class="relative">
                         <input id="confirm-password" class="w-full h-touch-target-min px-4 pr-12 rounded-lg border border-outline-variant bg-surface-container-low text-on-surface text-body-md placeholder:text-outline focus:border-primary focus:outline-none focus:ring-0" maxlength="20" placeholder="请再次输入密码" type="password">
@@ -129,7 +130,7 @@
                 </div>
 
                 <!-- 登录/注册主按钮 → 调用后端 API -->
-                <button id="login-btn" class="w-full h-touch-target-min bg-primary text-on-primary rounded-full font-bold text-body-lg shadow-md hover:bg-primary-container transition-all active:scale-[0.98]">登录 / 注册</button>
+                <button id="login-btn" class="w-full h-touch-target-min bg-primary text-on-primary rounded-full font-bold text-body-lg shadow-md hover:bg-primary-container transition-all active:scale-[0.98]">登录</button>
 
                 <!-- 分割线 -->
                 <div class="flex items-center gap-4 py-2">
@@ -216,11 +217,12 @@
             passwordInput.addEventListener('input', checkPasswordMatch);
             confirmInput.addEventListener('input', checkPasswordMatch);
 
-            // 登录按钮
+            // 登录/注册逻辑
             var loginBtn = document.getElementById('login-btn');
             var phoneInput = document.getElementById('phone-input');
             var nicknameInput = document.getElementById('nickname-input');
             var nicknameSection = document.getElementById('nickname-section');
+            var confirmPasswordSection = document.getElementById('confirm-password-section');
 
             loginBtn.addEventListener('click', function () {
                 var phone = phoneInput.value.trim();
@@ -230,17 +232,47 @@
 
                 if (!phone) { alert('请输入手机号'); return; }
                 if (!password) { alert('请输入密码'); return; }
-                if (!confirmPassword) { alert('请输入确认密码'); return; }
-                if (password !== confirmPassword) {
-                    errorMsg.classList.remove('hidden');
-                    alert('两次输入的密码不一致');
+
+                // 如果确认密码框已显示，走注册流程
+                if (confirmPasswordSection.classList.contains('hidden') === false) {
+                    if (!confirmPassword) { alert('请输入确认密码'); return; }
+                    if (password !== confirmPassword) {
+                        errorMsg.classList.remove('hidden');
+                        alert('两次输入的密码不一致');
+                        return;
+                    }
+
+                    loginBtn.disabled = true;
+                    loginBtn.textContent = '注册中...';
+
+                    fetch(API_BASE + '/api/auth/register', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ phone: phone, password: password, nickname: nickname })
+                    })
+                    .then(function (res) { return res.json(); })
+                    .then(function (result) {
+                        loginBtn.disabled = false;
+                        if (result.code === 0) {
+                            localStorage.setItem('token', result.data.token);
+                            window.location.href = 'pages/home.html';
+                        } else {
+                            alert(result.msg || '注册失败');
+                            loginBtn.textContent = '登录';
+                        }
+                    })
+                    .catch(function () {
+                        alert('网络错误，请稍后重试');
+                        loginBtn.disabled = false;
+                        loginBtn.textContent = '登录';
+                    });
                     return;
                 }
 
+                // 首次点击：尝试登录
                 loginBtn.disabled = true;
                 loginBtn.textContent = '登录中...';
 
-                // 先尝试登录，如果用户不存在则自动注册
                 fetch(API_BASE + '/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -253,42 +285,23 @@
                         localStorage.setItem('token', result.data.token);
                         window.location.href = 'pages/home.html';
                     } else if (result.code === 404) {
-                        // 用户不存在，自动注册
-                        fetch(API_BASE + '/api/auth/register', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ phone: phone, password: password, nickname: nickname })
-                        })
-                        .then(function (res) { return res.json(); })
-                        .then(function (result) {
-                            if (result.code === 0) {
-                                localStorage.setItem('token', result.data.token);
-                                window.location.href = 'pages/home.html';
-                            } else {
-                                alert(result.msg || '注册失败');
-                            }
-                        })
-                        .catch(function () { alert('网络错误，请稍后重试'); })
-                        .finally(function () {
-                            loginBtn.disabled = false;
-                            loginBtn.textContent = '登录 / 注册';
-                        });
+                        // 用户不存在，显示确认密码框让用户注册
+                        nicknameSection.classList.remove('hidden');
+                        confirmPasswordSection.classList.remove('hidden');
+                        loginBtn.disabled = false;
+                        loginBtn.textContent = '确认注册';
                     } else {
                         alert(result.msg || '登录失败');
                         loginBtn.disabled = false;
-                        loginBtn.textContent = '登录 / 注册';
+                        loginBtn.textContent = '登录';
                     }
                 })
                 .catch(function () {
                     alert('网络错误，请稍后重试');
                     loginBtn.disabled = false;
-                    loginBtn.textContent = '登录 / 注册';
+                    loginBtn.textContent = '登录';
                 });
             });
-
-            // 输入密码时如果确认密码也有内容，检查是否一致
-            passwordInput.addEventListener('input', checkPasswordMatch);
-            confirmInput.addEventListener('input', checkPasswordMatch);
         })();
     </script>
 </body>

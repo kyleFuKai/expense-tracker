@@ -107,11 +107,13 @@
             <div class="flex justify-between items-end border-b border-outline-variant pb-2">
                 <div class="flex flex-col">
                     <span id="amount-label" class="text-label-caps font-label-caps text-danger-expense uppercase tracking-wider">支出金额</span>
-                    <div class="flex items-center gap-1 cursor-pointer">
+                    <div class="flex items-center gap-1">
                         <span class="text-headline-md font-headline-md text-on-surface-variant">¥</span>
-                        <input id="amount-input" class="w-full bg-transparent border-none focus:ring-0 text-display-hero-mobile font-display-hero-mobile text-primary placeholder:text-outline-variant p-0" placeholder="0.00" type="tel" readonly>
+                        <input id="amount-input" class="w-full bg-transparent border-none focus:ring-0 text-display-hero-mobile font-display-hero-mobile text-primary placeholder:text-outline-variant p-0" placeholder="0.00" type="text" inputmode="decimal">
                     </div>
                 </div>
+                <!-- 保存按钮（主界面常驻） -->
+                <button id="btn-save" class="h-10 px-6 bg-primary text-on-primary rounded-full text-body-sm font-bold hover:bg-primary-container active:scale-95 transition-all shadow-sm">保存</button>
                 <!-- 时间标签 -->
                 <div id="time-label" class="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-label-caps font-label-caps flex items-center gap-1 cursor-pointer" onclick="window.showDatePicker()">
                     <span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">schedule</span>现在
@@ -282,10 +284,10 @@
         // 日历按钮打开日期选择器
         document.getElementById('btn-calendar').addEventListener('click', showDatePicker);
 
-        // 点击金额输入区域弹出键盘
-        document.querySelector('#amount-input').parentElement.addEventListener('click', function () {
-            showKeyboard();
-        });
+        // 金额输入框现在可以直接打字输入（物理键盘）
+        // document.querySelector('#amount-input').parentElement.addEventListener('click', function () {
+        //     showKeyboard();
+        // });
 
         keyBtns.forEach(function (btn) {
             btn.addEventListener('click', function () {
@@ -404,9 +406,17 @@
             return colors[icon] || colors.default;
         }
 
+        // ===== 同步主输入框与虚拟键盘 =====
+        amountInput.addEventListener('input', function () {
+            // 主输入框直接打字时，同步到 amountStr
+            amountStr = amountInput.value.trim().replace(/[^0-9.]/g, '');
+            updateAmountDisplay();
+        });
+
         // ===== 保存账单 =====
-        keySave.addEventListener('click', function () {
-            var amount = parseFloat(amountStr);
+        function submitBill() {
+            // 优先从主输入框取值（直接打字），其次用 amountStr（虚拟键盘）
+            var amount = parseFloat(amountInput.value) || parseFloat(amountStr);
             if (!amount || amount <= 0) {
                 showToast('请输入金额');
                 return;
@@ -467,11 +477,16 @@
                 keySave.textContent = '保存';
                 showToast('网络错误，请重试');
             });
-        });
+        }
+
+        // 主界面保存按钮
+        document.getElementById('btn-save').addEventListener('click', submitBill);
+        // 虚拟键盘保存按钮
+        keySave.addEventListener('click', submitBill);
 
         function showToast(msg) {
             var toast = document.createElement('div');
-            toast.className = 'fixed top-20 left-1/2 -translate-x-1/2 z-[100] bg-surface-dark text-on-surface px-6 py-3 rounded-xl shadow-lg text-body-sm font-body-sm';
+            toast.className = 'fixed top-20 left-1/2 -translate-x-1/2 z-[100] bg-danger-expense text-white px-6 py-3 rounded-xl shadow-lg text-body-sm font-body-sm';
             toast.textContent = msg;
             document.body.appendChild(toast);
             setTimeout(function () { toast.remove(); }, 2500);

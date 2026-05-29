@@ -5,8 +5,10 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.xingzhewk.common.Result;
 import com.xingzhewk.dto.BillDTO;
 import com.xingzhewk.entity.Bill;
+import com.xingzhewk.entity.Category;
 import com.xingzhewk.common.exception.BusinessException;
 import com.xingzhewk.mapper.BillMapper;
+import com.xingzhewk.mapper.CategoryMapper;
 import com.xingzhewk.service.BillService;
 import com.xingzhewk.vo.BillStatsVO;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +31,7 @@ public class BillServiceImpl implements BillService {
     private static final DateTimeFormatter BILL_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private final BillMapper billMapper;
+    private final CategoryMapper categoryMapper;
 
     @Override
     public Result<?> list(Long userId, String month, Long categoryId, String type, String keyword, int page, int pageSize) {
@@ -68,8 +71,10 @@ public class BillServiceImpl implements BillService {
             map.put("is_recurring", bill.getIsRecurring());
             map.put("created_at", bill.getCreatedAt());
             map.put("updated_at", bill.getUpdatedAt());
-            map.put("category_name", null);
-            map.put("category_icon", null);
+
+            Category cat = categoryMapper.selectById(bill.getCategoryId());
+            map.put("category_name", cat != null ? cat.getName() : null);
+            map.put("category_icon", cat != null ? cat.getIcon() : null);
             return map;
         }).collect(Collectors.toList());
 
