@@ -23,7 +23,7 @@ var API_BASE = 'http://localhost:8080';
 ## 功能特性
 
 - **用户认证** — 手机号注册/登录，JWT Token 认证（7天有效期），bcryptjs 密码加密；密码需包含大小写字母、数字和特殊字符，6-20位
-- **安全机制** — 登录/注册频率限制（10次/15分钟），密码复杂度校验，错误提示防信息泄露
+- **安全机制** — 连续 5 次登录失败锁定 15 分钟，XSS 防护（用户数据 HTML 转义），密码复杂度校验（大小写+数字+特殊字符，6-20 位），错误提示防信息泄露
 - **账单管理** — 记录收入/支出，支持分类、金额、备注；无限滚动分页加载（每页 10 条）
 - **分类管理** — 内置 16 个预设收支分类（带图标），支持归档空分类
 - **预算管理** — 月度总预算 + 分项预算，进度仪表盘实时追踪
@@ -39,7 +39,7 @@ var API_BASE = 'http://localhost:8080';
 | 后端（Java） | Spring Boot 3.2 + MyBatis-Plus 3.5 + MySQL 8.0 |
 | 数据库 | MySQL 8.0 |
 | 认证 | JWT + bcryptjs（Node.js）/ spring-security-crypto（Java） |
-| 安全 | express-rate-limit / Spring Boot 拦截器，频率限制 + 密码复杂度校验 |
+| 安全 | CORS、express-rate-limit / Spring Boot 拦截器、登录失败锁定、XSS 防护（HTML 转义）、密码复杂度校验 |
 | 文件上传 | Multer（头像，2MB 图片限制） |
 
 ## 项目结构
@@ -86,7 +86,13 @@ var API_BASE = 'http://localhost:8080';
 │       ├── .env                      # 环境变量（数据库连接、JWT 密钥）
 │       ├── .gitignore                # Git 忽略规则
 │       ├── README.md                 # Java 后端文档
-│       ├── test_java_full.sh         # 全量测试脚本（91 用例）
+│       ├── src/test/java/            # JUnit 测试
+│       │   ├── controller/
+│       │   │   └── BillExportControllerTest.java   # 10 用例：账单导出
+│       │   └── service/
+│       │       ├── CategoryServiceTest.java        # 7 用例：分类 CRUD + 归档
+│       │       ├── BudgetServiceTest.java          # 6 用例：预算仪表盘
+│       │       └── UserServiceTest.java            # 9 用例：登录防爆破
 │       └── src/main/
 │           ├── java/com/expense/
 │           │   ├── controller/       # 控制器（Auth / User / Bill / Category / Budget）
@@ -98,7 +104,7 @@ var API_BASE = 'http://localhost:8080';
 │           │   ├── common/           # 统一响应、全局异常处理、枚举
 │           │   ├── config/           # Web、MyBatis-Plus、JWT 配置
 │           │   ├── interceptor/      # JWT 鉴权拦截器
-│           │   ├── util/             # JWT 工具、BCrypt 工具
+│           │   ├── util/             # JWT 工具、PasswordUtil（spring-security-crypto BCrypt）
 │           │   └── ExpenseTrackerApplication.java  # 启动类
 │           └── resources/
 │               ├── application.yml   # 主配置
@@ -190,16 +196,16 @@ var API_BASE = 'http://localhost:8080';
 
 ## 测试
 
-项目内置两套测试脚本，分别对应两个后端：
+项目内置多套测试：
 
 ```bash
+# Java JUnit 测试（32 用例，2026-05-29 新增）
+cd "005.后端工程师 (java工程师)/expense-tracker-server"
+mvn test
+
 # Node.js 后端测试（187 用例）
 cd 003.前端代码
 bash test_full_187.sh
-
-# Java 后端测试（91 用例，功能等价）
-cd 005.后端工程师\ \(java工程师\)/expense-tracker-server
-bash test_java_full.sh
 ```
 
-覆盖范围：认证模块（27）、账单 CRUD（20）、账单边界（18）、预算 CRUD（14）、预算仪表盘（10）、分类（13）、用户（15）、统计（12）、安全测试（SQL 注入、XSS、JWT 伪造 — 20）、UI（19 项跳过，需浏览器环境）。
+**JUnit 测试覆盖**：账单导出 (10)、分类 CRUD + 归档 (7)、预算仪表盘真实数据 (6)、登录防爆破保护 (9)。

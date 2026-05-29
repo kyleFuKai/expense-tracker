@@ -1,5 +1,6 @@
 require('dotenv').config();
 const path = require('path');
+const cors = require('cors');
 const express = require('express');
 const rateLimit = require('express-rate-limit');
 const authRoutes = require('./routes/auth');
@@ -10,6 +11,9 @@ const budgetRoutes = require('./routes/budgets');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// CORS 跨域支持
+app.use(cors());
 
 // Auth rate limiter: 30 requests / 15 min per IP
 const authLimiter = rateLimit({

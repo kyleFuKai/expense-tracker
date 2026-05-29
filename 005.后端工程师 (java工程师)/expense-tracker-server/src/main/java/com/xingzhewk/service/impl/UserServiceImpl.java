@@ -13,8 +13,8 @@ import com.xingzhewk.entity.User;
 import com.xingzhewk.common.exception.BusinessException;
 import com.xingzhewk.mapper.UserMapper;
 import com.xingzhewk.service.UserService;
-import com.xingzhewk.util.BCryptUtil;
 import com.xingzhewk.util.JwtUtil;
+import com.xingzhewk.util.PasswordUtil;
 import com.xingzhewk.vo.LoginVO;
 import com.xingzhewk.vo.UserVO;
 import lombok.RequiredArgsConstructor;
@@ -43,8 +43,17 @@ public class UserServiceImpl implements UserService {
     /** 测试用固定验证码 */
     private static final String TEST_SMS_CODE = "666666";
 
+    /** 登录失败最大次数 */
+    private static final int MAX_LOGIN_ATTEMPTS = 5;
+
+    /** 登录锁定窗口：15 分钟 */
+    private static final long LOGIN_LOCK_WINDOW_MS = 15 * 60 * 1000L;
+
     /** 存储短信验证码及发送时间。Key: phone, Value: 验证码记录 */
     private final ConcurrentHashMap<String, SmsCodeRecord> smsCodeStore = new ConcurrentHashMap<>();
+
+    /** 存储登录失败次数。Key: phone, Value: 失败记录 */
+    private final ConcurrentHashMap<String, LoginAttemptRecord> loginAttemptStore = new ConcurrentHashMap<>();
 
     /**
      * 短信验证码记录
@@ -58,9 +67,24 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    /**
+     * 登录失败记录
+     */
+    private static class LoginAttemptRecord {
+        int failedCount;
+        long firstFailTimeMs;
+        LoginAttemptRecord() {
+            this.failedCount = 1;
+            this.firstFailTimeMs = System.currentTimeMillis();
+        }
+        void increment() {
+            this.failedCount++;
+        }
+    }
+
     private final UserMapper userMapper;
     private final JwtUtil jwtUtil;
-    private final BCryptUtil bcrypt;
+    private final PasswordUtil passwordUtil;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -85,7 +109,7 @@ public class UserServiceImpl implements UserService {
 
         User user = new User();
         user.setPhone(phone);
-        user.setPasswordHash(bcrypt.hash(password));
+        user.setPasswordHash(passwordUtil.hash(password));
         String nickname = dto.getNickname();
         if (nickname == null || nickname.isBlank()) {
             nickname = phone.replaceAll("(\\d{3})\\d{4}(\\d{4})", "$1****$2");
@@ -108,13 +132,31 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException(400, "手机号格式不正确");
         }
 
+        // Check if account is locked due to too many failed attempts
+        LoginAttemptRecord record = loginAttemptStore.get(phone);
+        if (record != null && record.failedCount >= MAX_LOGIN_ATTEMPTS
+                && System.currentTimeMillis() - record.firstFailTimeMs < LOGIN_LOCK_WINDOW_MS) {
+            long remainingSeconds = (LOGIN_LOCK_WINDOW_MS - (System.currentTimeMillis() - record.firstFailTimeMs)) / 1000;
+            throw new BusinessException(429, "登录失败次数过多，请 " + remainingSeconds + " 秒后再试");
+        }
+        // Lock window expired, reset
+        if (record != null && record.failedCount >= MAX_LOGIN_ATTEMPTS) {
+            loginAttemptStore.remove(phone);
+        }
+
         User user = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getPhone, phone));
         if (user == null) {
+            // Still count as failed to prevent phone enumeration
+            recordFailedLogin(phone);
             throw new BusinessException(404, "用户不存在");
         }
-        if (!bcrypt.verify(dto.getPassword(), user.getPasswordHash())) {
+        if (!passwordUtil.verify(dto.getPassword(), user.getPasswordHash())) {
+            recordFailedLogin(phone);
             throw new BusinessException(401, "手机号或密码错误");
         }
+
+        // Login success: clear failed attempts
+        loginAttemptStore.remove(phone);
 
         String token = jwtUtil.generateToken(user.getId(), user.getPhone());
 
@@ -123,6 +165,19 @@ public class UserServiceImpl implements UserService {
         vo.setUserId(user.getId());
         vo.setNickname(user.getNickname());
         return Result.success(vo);
+    }
+
+    /**
+     * 记录登录失败，超过阈值则锁定账号
+     */
+    private void recordFailedLogin(String phone) {
+        LoginAttemptRecord record = loginAttemptStore.get(phone);
+        if (record == null) {
+            loginAttemptStore.put(phone, new LoginAttemptRecord());
+        } else {
+            record.increment();
+        }
+        log.warn("登录失败, phone={}, 失败次数={}", phone, loginAttemptStore.get(phone).failedCount);
     }
 
     @Override
@@ -184,11 +239,11 @@ public class UserServiceImpl implements UserService {
         }
 
         User user = userMapper.selectById(userId);
-        if (user == null || !bcrypt.verify(dto.getOldPassword(), user.getPasswordHash())) {
+        if (user == null || !passwordUtil.verify(dto.getOldPassword(), user.getPasswordHash())) {
             throw new BusinessException(401, "旧密码错误");
         }
 
-        user.setPasswordHash(bcrypt.hash(newPassword));
+        user.setPasswordHash(passwordUtil.hash(newPassword));
         userMapper.updateById(user);
         log.info("用户密码修改, userId={}", userId);
         return Result.success();
@@ -246,7 +301,7 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException(400, "验证码错误");
         }
 
-        user.setPasswordHash(bcrypt.hash(newPassword));
+        user.setPasswordHash(passwordUtil.hash(newPassword));
         userMapper.updateById(user);
         smsCodeStore.remove(phone);
         log.info("密码重置成功, phone={}", phone);

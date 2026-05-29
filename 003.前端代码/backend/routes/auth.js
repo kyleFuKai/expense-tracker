@@ -87,4 +87,24 @@ router.post('/login-sms', async (req, res) => {
     res.status(501).json({ code: 501, msg: '短信登录暂未开放' });
 });
 
+// POST /api/auth/send-sms-code — 发送短信验证码 (预留)
+router.post('/send-sms-code', async (req, res) => {
+    const { phone } = req.body;
+    if (!phone || !/^\d{8,15}$/.test(phone)) {
+        return res.status(400).json({ code: 400, msg: '手机号格式不正确' });
+    }
+    // TODO: 接入短信服务（V1.1 实现）
+    res.status(501).json({ code: 501, msg: '短信验证码功能暂未开放' });
+});
+
+// POST /api/auth/reset-password — 通过短信验证码重置密码 (预留)
+router.post('/reset-password', async (req, res) => {
+    const { phone, smsCode, newPassword } = req.body;
+    if (!phone || !smsCode || !newPassword) {
+        return res.status(400).json({ code: 400, msg: '参数不完整' });
+    }
+    // TODO: 验证码校验 + 密码重置逻辑（V1.1 实现）
+    res.status(501).json({ code: 501, msg: '短信验证码功能暂未开放' });
+});
+
 module.exports = router;

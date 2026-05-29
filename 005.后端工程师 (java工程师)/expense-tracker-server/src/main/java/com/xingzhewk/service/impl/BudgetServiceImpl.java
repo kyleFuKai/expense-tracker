@@ -5,7 +5,10 @@ import com.xingzhewk.common.Result;
 import com.xingzhewk.dto.BudgetDTO;
 import com.xingzhewk.entity.Budget;
 import com.xingzhewk.common.exception.BusinessException;
+import com.xingzhewk.entity.Category;
+import com.xingzhewk.mapper.BillMapper;
 import com.xingzhewk.mapper.BudgetMapper;
+import com.xingzhewk.mapper.CategoryMapper;
 import com.xingzhewk.service.BudgetService;
 import com.xingzhewk.vo.BudgetDashboardVO;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +21,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -26,6 +28,8 @@ import java.util.stream.Collectors;
 public class BudgetServiceImpl implements BudgetService {
 
     private final BudgetMapper budgetMapper;
+    private final BillMapper billMapper;
+    private final CategoryMapper categoryMapper;
 
     @Override
     public Result<List<?>> list(Long userId, String type) {
@@ -68,21 +72,46 @@ public class BudgetServiceImpl implements BudgetService {
                 .eq(Budget::getPeriod, "MONTHLY")
                 .le(Budget::getStartDate, targetMonth + "-28")
                 .and(c -> c.isNull(Budget::getEndDate).or().ge(Budget::getEndDate, targetMonth + "-01"));
-        // Note: actual category info join requires raw SQL; keeping it simple here
 
-        BigDecimal spent = BigDecimal.ZERO;
-        // Monthly spent calculation would require BillMapper; simplified
-        BigDecimal remaining = totalBudgetAmount.subtract(spent);
+        BigDecimal totalSpent = billMapper.selectSumAmount(userId, targetMonth + "-01", targetMonth + "-31");
+        if (totalSpent == null) totalSpent = BigDecimal.ZERO;
+        BigDecimal remaining = totalBudgetAmount.subtract(totalSpent);
         int percent = totalBudgetAmount.compareTo(BigDecimal.ZERO) > 0
-                ? spent.multiply(BigDecimal.valueOf(100)).divide(totalBudgetAmount, 0, RoundingMode.HALF_UP).intValue()
+                ? totalSpent.multiply(BigDecimal.valueOf(100)).divide(totalBudgetAmount, 0, RoundingMode.HALF_UP).intValue()
                 : 0;
+
+        // Build category progress list
+        List<BudgetDashboardVO.CategoryProgress> categoryProgressList = new ArrayList<>();
+        for (Budget budget : budgetMapper.selectList(catWrapper)) {
+            BigDecimal catSpent = billMapper.selectSumAmountByCategory(userId, budget.getCategoryId(), targetMonth + "-01", targetMonth + "-31");
+            if (catSpent == null) catSpent = BigDecimal.ZERO;
+            BigDecimal catRemaining = budget.getAmount().subtract(catSpent);
+            int catPercent = budget.getAmount().compareTo(BigDecimal.ZERO) > 0
+                    ? catSpent.multiply(BigDecimal.valueOf(100)).divide(budget.getAmount(), 0, RoundingMode.HALF_UP).intValue()
+                    : 0;
+
+            Category category = categoryMapper.selectOne(new LambdaQueryWrapper<Category>().eq(Category::getId, budget.getCategoryId()));
+            String catName = category != null ? category.getName() : "未知分类";
+            String catIcon = category != null ? category.getIcon() : "";
+
+            BudgetDashboardVO.CategoryProgress progress = new BudgetDashboardVO.CategoryProgress();
+            progress.setBudgetId(budget.getId());
+            progress.setCatId(budget.getCategoryId());
+            progress.setCategoryName(catName);
+            progress.setCategoryIcon(catIcon);
+            progress.setBudgetAmount(budget.getAmount());
+            progress.setSpent(catSpent);
+            progress.setPercent(catPercent);
+            progress.setRemaining(catRemaining);
+            categoryProgressList.add(progress);
+        }
 
         BudgetDashboardVO vo = new BudgetDashboardVO();
         vo.setTotalBudget(totalBudgetAmount);
-        vo.setSpent(spent);
+        vo.setSpent(totalSpent);
         vo.setRemaining(remaining);
         vo.setPercent(percent);
-        vo.setCategories(new ArrayList<>());
+        vo.setCategories(categoryProgressList);
 
         return Result.success(vo);
     }

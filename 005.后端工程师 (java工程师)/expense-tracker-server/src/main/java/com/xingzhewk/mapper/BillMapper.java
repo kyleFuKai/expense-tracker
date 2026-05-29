@@ -6,6 +6,8 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
+import java.math.BigDecimal;
+
 import java.util.List;
 import java.util.Map;
 
@@ -33,6 +35,32 @@ public interface BillMapper extends BaseMapper<Bill> {
             @Param("type") String type,
             @Param("categoryId") Long categoryId,
             @Param("keyword") String keyword,
+            @Param("startDate") String startDate,
+            @Param("endDate") String endDate
+    );
+
+    /**
+     * 汇总某用户某段时间内的支出金额
+     */
+    @Select("SELECT COALESCE(SUM(amount), 0) FROM bill " +
+            "WHERE user_id = #{userId} AND type = 'EXPENSE' " +
+            "AND bill_time >= #{startDate} AND bill_time <= #{endDate}")
+    BigDecimal selectSumAmount(
+            @Param("userId") Long userId,
+            @Param("startDate") String startDate,
+            @Param("endDate") String endDate
+    );
+
+    /**
+     * 汇总某用户某分类某段时间内的支出金额
+     */
+    @Select("SELECT COALESCE(SUM(amount), 0) FROM bill " +
+            "WHERE user_id = #{userId} AND type = 'EXPENSE' " +
+            "AND category_id = #{categoryId} " +
+            "AND bill_time >= #{startDate} AND bill_time <= #{endDate}")
+    BigDecimal selectSumAmountByCategory(
+            @Param("userId") Long userId,
+            @Param("categoryId") Long categoryId,
             @Param("startDate") String startDate,
             @Param("endDate") String endDate
     );

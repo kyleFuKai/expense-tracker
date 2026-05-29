@@ -3,8 +3,10 @@ package com.xingzhewk.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.xingzhewk.common.Result;
 import com.xingzhewk.dto.CategoryDTO;
+import com.xingzhewk.entity.Bill;
 import com.xingzhewk.entity.Category;
 import com.xingzhewk.common.exception.BusinessException;
+import com.xingzhewk.mapper.BillMapper;
 import com.xingzhewk.mapper.CategoryMapper;
 import com.xingzhewk.service.CategoryService;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +26,7 @@ import java.util.stream.Collectors;
 public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryMapper categoryMapper;
+    private final BillMapper billMapper;
 
     @Override
     public Result<List<?>> list(Long userId, String type) {
@@ -94,8 +97,8 @@ public class CategoryServiceImpl implements CategoryService {
             throw new BusinessException(404, "分类不存在或为系统预设分类");
         }
 
-        long billCount = categoryMapper.selectCount(
-                new LambdaQueryWrapper<Category>().eq(Category::getId, id));
+        long billCount = billMapper.selectCount(
+                new LambdaQueryWrapper<Bill>().eq(Bill::getCategoryId, id));
 
         if (billCount > 0) {
             existing.setIsArchived(1);

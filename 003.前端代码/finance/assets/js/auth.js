@@ -13,6 +13,20 @@ var API_BASE = 'http://localhost:8080';
 var Auth = (function () {
     'use strict';
 
+    /**
+     * HTML 转义：将用户数据中的 < > " ' & 转换为实体，防止 XSS。
+     * 所有拼入 innerHTML 的用户数据必须经过此函数。
+     */
+    function escapeHtml(str) {
+        if (str == null) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#x27;');
+    }
+
     function getToken() {
         return localStorage.getItem('token') || '';
     }
@@ -83,6 +97,7 @@ var Auth = (function () {
         clearToken: clearToken,
         check: check,
         logout: logout,
-        fetchApi: fetchApi
+        fetchApi: fetchApi,
+        escapeHtml: escapeHtml
     };
 })();

@@ -121,10 +121,29 @@ expense-tracker-server/
 │   ├── config/              # 配置类
 │   ├── interceptor/         # 拦截器
 │   └── util/                # 工具类
-└── src/main/resources/
-    ├── application.yml
-    ├── application-dev.yml
-    └── application-prod.yml
+│       ├── PasswordUtil.java       # BCrypt 加密（基于 spring-security-crypto）
+│       └── JwtUtil.java            # JWT 生成/验证
+├── src/main/resources/
+│   ├── application.yml
+│   ├── application-dev.yml
+│   └── application-prod.yml
+└── src/test/java/com/expense/
+    ├── controller/
+    │   └── BillExportControllerTest.java   # 10 用例：账单导出 API
+    └── service/
+        ├── CategoryServiceTest.java        # 7 用例：分类 CRUD + 归档
+        ├── BudgetServiceTest.java          # 6 用例：预算仪表盘真实数据
+        └── UserServiceTest.java            # 9 用例：登录防爆破保护
+```
+
+## 测试
+
+```bash
+# 运行全部 JUnit 测试（32 用例）
+mvn test
+
+# 运行单个测试类
+mvn test -Dtest=CategoryServiceTest
 ```
 
 ## 开发规范

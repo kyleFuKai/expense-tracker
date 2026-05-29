@@ -221,11 +221,11 @@
                 } else {
                     cats.forEach(function (cat) {
                         var icon = cat.icon || 'more_horiz';
-                        html += '<div class="flex flex-col items-center justify-center aspect-square bg-surface-container-lowest shadow-sm rounded-2xl p-card-padding relative group border border-transparent hover:border-primary-container transition-all cursor-pointer" onclick="showCategoryActions(' + cat.id + ', \'' + cat.name.replace(/'/g, "\\'") + '\', ' + cat.is_preset + ')">';
+                        html += '<div class="flex flex-col items-center justify-center aspect-square bg-surface-container-lowest shadow-sm rounded-2xl p-card-padding relative group border border-transparent hover:border-primary-container transition-all cursor-pointer" data-id="' + cat.id + '" data-name="' + Auth.escapeHtml(cat.name) + '" data-preset="' + cat.is_preset + '" onclick="showCategoryActions(this)">';
                         html += '<div class="w-12 h-12 flex items-center justify-center rounded-full bg-surface-container-highest text-primary mb-2">';
                         html += '<span class="material-symbols-outlined" style="font-variation-settings: \'FILL\' 1;">' + icon + '</span>';
                         html += '</div>';
-                        html += '<span class="text-label-caps font-label-caps text-on-surface">' + cat.name + '</span>';
+                        html += '<span class="text-label-caps font-label-caps text-on-surface">' + Auth.escapeHtml(cat.name) + '</span>';
                         if (cat.is_preset) {
                             html += '<span class="text-[9px] text-outline mt-1">系统预设</span>';
                         } else {
@@ -240,7 +240,10 @@
         }
 
         // 分类操作（点击自定义分类时弹出）
-        window.showCategoryActions = function (id, name, isPreset) {
+        window.showCategoryActions = function (el) {
+            var id = Number(el.dataset.id);
+            var name = el.dataset.name;
+            var isPreset = Number(el.dataset.preset);
             if (isPreset) {
                 alert('系统预设分类不可修改');
                 return;

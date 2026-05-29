@@ -222,8 +222,8 @@
                 '<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center ' + colorClass + '">' +
                 '<span class="material-symbols-outlined">' + icon + '</span>' +
                 '</div><div>' +
-                '<p class="font-body-md text-body-md text-on-surface">' + remark + '</p>' +
-                '<p class="text-label-caps font-label-caps text-outline">' + catName + '</p>' +
+                '<p class="font-body-md text-body-md text-on-surface">' + Auth.escapeHtml(remark) + '</p>' +
+                '<p class="text-label-caps font-label-caps text-outline">' + Auth.escapeHtml(catName) + '</p>' +
                 '</div></div>' +
                 '<span class="font-numeric-data text-numeric-data ' + amountColor + '">' + sign + fmtMoney(bill.amount) + '</span>' +
                 '</div>';

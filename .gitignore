@@ -26,6 +26,7 @@ package-lock.json
 
 # Local settings
 .claude/settings.local.json
+.claude/projects/
 
 # Environment variables (sensitive config)
 .env
