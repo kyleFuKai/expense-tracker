@@ -24,7 +24,7 @@ public interface BillService {
      * @param pageSize   每页条数（最大 100）
      * @return {list: [...], total: N, page: 1, pageSize: 50}
      */
-    Result<?> list(Long userId, String month, Long categoryId, String type, String keyword, int page, int pageSize);
+    Result<?> list(Long userId, String month, Long categoryId, String type, String keyword, Long tagId, int page, int pageSize);
 
     /**
      * 获取账单详情

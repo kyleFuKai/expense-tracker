@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * 账单请求参数
@@ -27,4 +28,7 @@ public class BillDTO {
     /** 账单时间（可选，前端传 bill_time，格式：yyyy-MM-dd HH:mm:ss） */
     @JsonProperty("bill_time")
     private String billTime;
+
+    /** 关联标签 ID 列表（可选） */
+    private List<Long> tagIds;
 }

@@ -5,9 +5,13 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.xingzhewk.common.Result;
 import com.xingzhewk.dto.BillDTO;
 import com.xingzhewk.entity.Bill;
+import com.xingzhewk.entity.BillTag;
+import com.xingzhewk.entity.BillTagRel;
 import com.xingzhewk.entity.Category;
 import com.xingzhewk.common.exception.BusinessException;
 import com.xingzhewk.mapper.BillMapper;
+import com.xingzhewk.mapper.BillTagMapper;
+import com.xingzhewk.mapper.BillTagRelMapper;
 import com.xingzhewk.mapper.CategoryMapper;
 import com.xingzhewk.service.BillService;
 import com.xingzhewk.vo.BillStatsVO;
@@ -32,9 +36,11 @@ public class BillServiceImpl implements BillService {
 
     private final BillMapper billMapper;
     private final CategoryMapper categoryMapper;
+    private final BillTagMapper billTagMapper;
+    private final BillTagRelMapper billTagRelMapper;
 
     @Override
-    public Result<?> list(Long userId, String month, Long categoryId, String type, String keyword, int page, int pageSize) {
+    public Result<?> list(Long userId, String month, Long categoryId, String type, String keyword, Long tagId, int page, int pageSize) {
         LambdaQueryWrapper<Bill> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Bill::getUserId, userId);
 
@@ -51,6 +57,10 @@ public class BillServiceImpl implements BillService {
         }
         if (StringUtils.hasText(keyword)) {
             wrapper.like(Bill::getRemark, keyword);
+        }
+        if (tagId != null) {
+            wrapper.inSql(Bill::getId,
+                    "SELECT bill_id FROM bill_tag_rel WHERE tag_id = " + tagId);
         }
 
         wrapper.orderByDesc(Bill::getBillTime);
@@ -75,6 +85,22 @@ public class BillServiceImpl implements BillService {
             Category cat = categoryMapper.selectById(bill.getCategoryId());
             map.put("category_name", cat != null ? cat.getName() : null);
             map.put("category_icon", cat != null ? cat.getIcon() : null);
+
+            // 查询该账单的标签
+            List<BillTagRel> rels = billTagRelMapper.selectList(
+                    new LambdaQueryWrapper<BillTagRel>().eq(BillTagRel::getBillId, bill.getId()));
+            List<Map<String, Object>> tags = new ArrayList<>();
+            for (BillTagRel rel : rels) {
+                BillTag tag = billTagMapper.selectById(rel.getTagId());
+                if (tag != null) {
+                    Map<String, Object> tagMap = new LinkedHashMap<>();
+                    tagMap.put("id", tag.getId());
+                    tagMap.put("name", tag.getName());
+                    tags.add(tagMap);
+                }
+            }
+            map.put("tags", tags);
+
             return map;
         }).collect(Collectors.toList());
 
@@ -105,6 +131,22 @@ public class BillServiceImpl implements BillService {
         map.put("bill_time", bill.getBillTime());
         map.put("created_at", bill.getCreatedAt());
         map.put("updated_at", bill.getUpdatedAt());
+
+        // 查询标签
+        List<BillTagRel> rels = billTagRelMapper.selectList(
+                new LambdaQueryWrapper<BillTagRel>().eq(BillTagRel::getBillId, id));
+        List<Map<String, Object>> tags = new ArrayList<>();
+        for (BillTagRel rel : rels) {
+            BillTag tag = billTagMapper.selectById(rel.getTagId());
+            if (tag != null) {
+                Map<String, Object> tagMap = new LinkedHashMap<>();
+                tagMap.put("id", tag.getId());
+                tagMap.put("name", tag.getName());
+                tags.add(tagMap);
+            }
+        }
+        map.put("tags", tags);
+
         return Result.success(map);
     }
 
@@ -135,6 +177,8 @@ public class BillServiceImpl implements BillService {
         bill.setIsRecurring(0);
 
         billMapper.insert(bill);
+        // 处理标签关联
+        attachTags(bill.getId(), dto.getTagIds());
         log.info("创建账单, billId={}, amount={}", bill.getId(), bill.getAmount());
         Map<String, Object> createResult = new LinkedHashMap<>();
         createResult.put("id", bill.getId());
@@ -173,6 +217,14 @@ public class BillServiceImpl implements BillService {
         if (dto.getBillTime() != null) update.setBillTime(parseBillTime(dto.getBillTime()));
 
         billMapper.updateById(update);
+        // 处理标签关联（全量替换）
+        if (dto.getTagIds() != null) {
+            billTagRelMapper.delete(
+                    new LambdaQueryWrapper<BillTagRel>().eq(BillTagRel::getBillId, id));
+            if (!dto.getTagIds().isEmpty()) {
+                attachTags(id, dto.getTagIds());
+            }
+        }
         return Result.success();
     }
 
@@ -184,6 +236,8 @@ public class BillServiceImpl implements BillService {
         if (existing == null) {
             throw new BusinessException(404, "账单不存在");
         }
+        billTagRelMapper.delete(
+                new LambdaQueryWrapper<BillTagRel>().eq(BillTagRel::getBillId, id));
         billMapper.deleteById(id);
         return Result.success();
     }
@@ -271,6 +325,26 @@ public class BillServiceImpl implements BillService {
         } catch (Exception e) {
             log.warn("账单时间解析失败，使用当前时间: {}", billTime);
             return LocalDateTime.now();
+        }
+    }
+
+    /** 验证并关联标签到账单 */
+    private void attachTags(Long billId, List<Long> tagIds) {
+        if (tagIds == null || tagIds.isEmpty()) {
+            return;
+        }
+        if (tagIds.size() > 10) {
+            throw new BusinessException(400, "每笔账单最多关联 10 个标签");
+        }
+        for (Long tagId : tagIds) {
+            BillTag tag = billTagMapper.selectById(tagId);
+            if (tag == null) {
+                throw new BusinessException(400, "标签不存在");
+            }
+            BillTagRel rel = new BillTagRel();
+            rel.setBillId(billId);
+            rel.setTagId(tagId);
+            billTagRelMapper.insert(rel);
         }
     }
 }

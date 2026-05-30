@@ -2,6 +2,8 @@ package com.xingzhewk.service.impl;
 
 import com.xingzhewk.common.exception.BusinessException;
 import com.xingzhewk.mapper.BillMapper;
+import com.xingzhewk.mapper.BillTagMapper;
+import com.xingzhewk.mapper.BillTagRelMapper;
 import com.xingzhewk.service.BillExportService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -28,9 +30,11 @@ public class BillExportServiceImpl implements BillExportService {
 
     private static final int MAX_EXPORT_ROWS = 50000;
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    private static final String[] HEADERS = {"账单时间", "类型", "分类", "金额", "备注", "创建时间"};
+    private static final String[] HEADERS = {"账单时间", "类型", "分类", "金额", "备注", "标签", "创建时间"};
 
     private final BillMapper billMapper;
+    private final BillTagRelMapper billTagRelMapper;
+    private final BillTagMapper billTagMapper;
 
     @Override
     public void exportBills(Long userId, String format, String month, String type,
@@ -71,7 +75,8 @@ public class BillExportServiceImpl implements BillExportService {
                 cells[2] = escapeCsv(String.valueOf(row.get("category_name")));
                 cells[3] = formatAmount(row.get("amount"));
                 cells[4] = escapeCsv(String.valueOf(row.get("remark")));
-                cells[5] = formatTime(row.get("created_at"));
+                cells[5] = escapeCsv(String.valueOf(row.get("tag_names")));
+                cells[6] = formatTime(row.get("created_at"));
                 writer.write(String.join(",", cells));
                 writer.newLine();
             }
@@ -123,7 +128,9 @@ public class BillExportServiceImpl implements BillExportService {
                 Cell c4 = dataRow.createCell(4);
                 c4.setCellValue(String.valueOf(row.get("remark")));
                 Cell c5 = dataRow.createCell(5);
-                c5.setCellValue(formatTime(row.get("created_at")));
+                c5.setCellValue(String.valueOf(row.get("tag_names")));
+                Cell c6 = dataRow.createCell(6);
+                c6.setCellValue(formatTime(row.get("created_at")));
             }
 
             wb.write(response.getOutputStream());

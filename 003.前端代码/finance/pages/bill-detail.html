@@ -131,6 +131,15 @@
                     </div>
                     <p id="bill-remark" class="font-body-md text-body-md text-on-surface italic leading-relaxed"></p>
                 </div>
+
+                <!-- 标签信息 -->
+                <div id="tags-wrap" class="hidden flex-col gap-2">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="material-symbols-outlined text-body-sm text-outline">sell</span>
+                        <span class="font-label-caps text-label-caps text-on-surface-variant">标签</span>
+                    </div>
+                    <div id="bill-tags" class="flex flex-wrap gap-1"></div>
+                </div>
             </div>
         </div>
 
@@ -202,6 +211,18 @@
                 document.getElementById('remark-wrap').classList.remove('hidden');
                 document.getElementById('remark-wrap').classList.add('flex');
                 document.getElementById('bill-remark').textContent = bill.remark;
+            }
+
+            // 标签
+            if (bill.tags && bill.tags.length > 0) {
+                document.getElementById('tags-wrap').classList.remove('hidden');
+                document.getElementById('tags-wrap').classList.add('flex');
+                var tagsContainer = document.getElementById('bill-tags');
+                var tagsHtml = '';
+                bill.tags.forEach(function (tag) {
+                    tagsHtml += '<span class="inline-block px-3 py-1 bg-surface-container-low text-on-surface-variant text-body-sm rounded-full">' + Auth.escapeHtml(tag.name) + '</span>';
+                });
+                tagsContainer.innerHTML = tagsHtml;
             }
 
             // 显示详情和操作按钮

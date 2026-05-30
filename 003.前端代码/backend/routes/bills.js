@@ -7,13 +7,14 @@ const ExcelJS = require('exceljs');
 const router = express.Router();
 router.use(authMiddleware);
 
-// GET /api/bills — 获取账单列表（支持按月/分类筛选，分页）
+// GET /api/bills — 获取账单列表（支持按月/分类/标签筛选，分页）
 router.get('/', async (req, res) => {
     const { user } = req;
     const month = req.query.month; // 格式: 2026-05
     const categoryId = req.query.category_id;
     const type = req.query.type; // expense / income
     const keyword = req.query.keyword; // 备注关键词搜索
+    const tagId = req.query.tag_id;
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const pageSize = Math.max(1, Math.min(100, parseInt(req.query.pageSize) || 50));
 
@@ -47,22 +48,50 @@ router.get('/', async (req, res) => {
         }).join(' AND ');
         const offset = (page - 1) * pageSize;
 
-        const [rows] = await pool.query(
-            `SELECT b.*, c.name AS category_name, c.icon AS category_icon
-             FROM bill b
-             LEFT JOIN category c ON b.category_id = c.id
-             ${whereB}
-             ORDER BY b.bill_time DESC
-             LIMIT ? OFFSET ?`,
-            [...params, pageSize, offset]
-        );
+        let query, countQuery, queryParams;
 
-        const [[{ total }]] = await pool.query(
-            `SELECT COUNT(*) AS total FROM bill b ${whereB}`,
-            params
-        );
+        if (tagId) {
+            // Filter by tag_id: INNER JOIN bill_tag_rel
+            query = `SELECT b.*, c.name AS category_name, c.icon AS category_icon,
+                        (SELECT JSON_ARRAYAGG(JSON_OBJECT('id', bt.id, 'name', bt.name))
+                         FROM bill_tag_rel btr
+                         JOIN bill_tag bt ON btr.tag_id = bt.id
+                         WHERE btr.bill_id = b.id) AS tags
+                     FROM bill b
+                     LEFT JOIN category c ON b.category_id = c.id
+                     INNER JOIN bill_tag_rel btr2 ON b.id = btr2.bill_id AND btr2.tag_id = ?
+                     ${whereB.replace(/^WHERE /, 'WHERE btr2.tag_id = ? AND ').replace('user_id = ?', 'b.user_id = ?')}
+                     ORDER BY b.bill_time DESC
+                     LIMIT ? OFFSET ?`;
+            queryParams = [parseInt(tagId), parseInt(tagId), ...params.slice(1), pageSize, offset];
 
-        res.json({ code: 0, data: { list: rows, total, page, pageSize } });
+            countQuery = `SELECT COUNT(*) AS total FROM bill b INNER JOIN bill_tag_rel btr2 ON b.id = btr2.bill_id ${whereB.replace(/^WHERE /, 'WHERE btr2.tag_id = ? AND ').replace('user_id = ?', 'b.user_id = ?')}`;
+        } else {
+            query = `SELECT b.*, c.name AS category_name, c.icon AS category_icon,
+                        (SELECT JSON_ARRAYAGG(JSON_OBJECT('id', bt.id, 'name', bt.name))
+                         FROM bill_tag_rel btr
+                         JOIN bill_tag bt ON btr.tag_id = bt.id
+                         WHERE btr.bill_id = b.id) AS tags
+                     FROM bill b
+                     LEFT JOIN category c ON b.category_id = c.id
+                     ${whereB}
+                     ORDER BY b.bill_time DESC
+                     LIMIT ? OFFSET ?`;
+            queryParams = [...params, pageSize, offset];
+            countQuery = `SELECT COUNT(*) AS total FROM bill b ${whereB}`;
+        }
+
+        const [rows] = await pool.query(query, queryParams);
+
+        const [[{ total }]] = await pool.query(countQuery, tagId ? [parseInt(tagId), ...params.slice(1)] : params);
+
+        const list = rows.map(row => {
+            const r = { ...row };
+            r.tags = row.tags ? JSON.parse(row.tags) : [];
+            return r;
+        });
+
+        res.json({ code: 0, data: { list, total, page, pageSize } });
     } catch (err) {
         logger.error('get bills error:', err);
         res.status(500).json({ code: 500, msg: '获取账单失败' });
@@ -111,7 +140,12 @@ router.get('/export', async (req, res) => {
 
         const where = 'WHERE ' + conditions.join(' AND ');
         const [rows] = await pool.query(
-            `SELECT b.bill_time, b.type, c.name AS category_name, b.amount, b.remark, b.created_at
+            `SELECT b.bill_time, b.type, c.name AS category_name, b.amount, b.remark,
+                    (SELECT GROUP_CONCAT(bt.name SEPARATOR ', ')
+                     FROM bill_tag_rel btr
+                     JOIN bill_tag bt ON btr.tag_id = bt.id
+                     WHERE btr.bill_id = b.id) AS tag_names,
+                    b.created_at
              FROM bill b LEFT JOIN category c ON b.category_id = c.id
              ${where}
              ORDER BY b.bill_time DESC
@@ -141,7 +175,11 @@ router.get('/:id', async (req, res) => {
     const { user } = req;
     try {
         const [[bill]] = await pool.query(
-            `SELECT b.*, c.name AS category_name, c.icon AS category_icon
+            `SELECT b.*, c.name AS category_name, c.icon AS category_icon,
+                    (SELECT JSON_ARRAYAGG(JSON_OBJECT('id', bt.id, 'name', bt.name))
+                     FROM bill_tag_rel btr
+                     JOIN bill_tag bt ON btr.tag_id = bt.id
+                     WHERE btr.bill_id = b.id) AS tags
              FROM bill b
              LEFT JOIN category c ON b.category_id = c.id
              WHERE b.id = ? AND b.user_id = ?`,
@@ -150,6 +188,7 @@ router.get('/:id', async (req, res) => {
         if (!bill) {
             return res.status(404).json({ code: 404, msg: '账单不存在' });
         }
+        bill.tags = bill.tags ? JSON.parse(bill.tags) : [];
         res.json({ code: 0, data: bill });
     } catch (err) {
         logger.error('get bill error:', err);
@@ -160,7 +199,7 @@ router.get('/:id', async (req, res) => {
 // POST /api/bills — 创建账单
 router.post('/', async (req, res) => {
     const { user } = req;
-    const { type, amount, category_id, remark, bill_time } = req.body;
+    const { type, amount, category_id, remark, bill_time, tag_ids } = req.body;
 
     if (!type || !amount || !category_id) {
         return res.status(400).json({ code: 400, msg: '类型、金额、分类不能为空' });
@@ -175,7 +214,24 @@ router.post('/', async (req, res) => {
              VALUES (?, ?, ?, ?, ?, ?)`,
             [user.id, type.toUpperCase(), parseFloat(amount), parseInt(category_id), remark || '', bill_time || new Date()]
         );
-        res.json({ code: 0, data: { id: result.insertId } });
+        const billId = result.insertId;
+
+        if (tag_ids && tag_ids.length > 0) {
+            if (tag_ids.length > 10) {
+                return res.status(400).json({ code: 400, msg: '每笔账单最多关联 10 个标签' });
+            }
+            const [[{ count }]] = await pool.query(
+                'SELECT COUNT(*) AS count FROM bill_tag WHERE id IN (?) AND user_id = ?',
+                [tag_ids, user.id]
+            );
+            if (count !== tag_ids.length) {
+                return res.status(400).json({ code: 400, msg: '部分标签不存在' });
+            }
+            const relValues = tag_ids.map(id => [billId, id]);
+            await pool.query('INSERT INTO bill_tag_rel (bill_id, tag_id) VALUES ?', [relValues]);
+        }
+
+        res.json({ code: 0, data: { id: billId } });
     } catch (err) {
         logger.error('create bill error:', err);
         res.status(500).json({ code: 500, msg: '创建账单失败' });
@@ -185,7 +241,7 @@ router.post('/', async (req, res) => {
 // PUT /api/bills/:id — 更新账单
 router.put('/:id', async (req, res) => {
     const { user } = req;
-    const { type, amount, category_id, remark, bill_time } = req.body;
+    const { type, amount, category_id, remark, bill_time, tag_ids } = req.body;
 
     if (remark && remark.length > 200) {
         return res.status(400).json({ code: 400, msg: '备注不能超过 200 个字符' });
@@ -218,12 +274,30 @@ router.put('/:id', async (req, res) => {
         if (remark !== undefined) { fields.push('remark = ?'); params.push(remark); }
         if (bill_time) { fields.push('bill_time = ?'); params.push(bill_time); }
 
-        if (fields.length === 0) {
-            return res.status(400).json({ code: 400, msg: '没有需要更新的字段' });
+        if (fields.length > 0) {
+            params.push(req.params.id);
+            await pool.query(`UPDATE bill SET ${fields.join(', ')} WHERE id = ?`, params);
         }
 
-        params.push(req.params.id);
-        await pool.query(`UPDATE bill SET ${fields.join(', ')} WHERE id = ?`, params);
+        // Handle tag relations (full replacement)
+        if (tag_ids !== undefined) {
+            if (tag_ids.length > 10) {
+                return res.status(400).json({ code: 400, msg: '每笔账单最多关联 10 个标签' });
+            }
+            await pool.query('DELETE FROM bill_tag_rel WHERE bill_id = ?', [req.params.id]);
+            if (tag_ids.length > 0) {
+                const [[{ count }]] = await pool.query(
+                    'SELECT COUNT(*) AS count FROM bill_tag WHERE id IN (?) AND user_id = ?',
+                    [tag_ids, user.id]
+                );
+                if (count !== tag_ids.length) {
+                    return res.status(400).json({ code: 400, msg: '部分标签不存在' });
+                }
+                const relValues = tag_ids.map(id => [req.params.id, id]);
+                await pool.query('INSERT INTO bill_tag_rel (bill_id, tag_id) VALUES ?', [relValues]);
+            }
+        }
+
         res.json({ code: 0, data: { id: req.params.id } });
     } catch (err) {
         logger.error('update bill error:', err);
@@ -242,6 +316,7 @@ router.delete('/:id', async (req, res) => {
         if (!existing) {
             return res.status(404).json({ code: 404, msg: '账单不存在' });
         }
+        await pool.query('DELETE FROM bill_tag_rel WHERE bill_id = ?', [req.params.id]);
         await pool.query('DELETE FROM bill WHERE id = ? AND user_id = ?', [req.params.id, user.id]);
         res.json({ code: 0, data: { id: req.params.id } });
     } catch (err) {
@@ -323,7 +398,7 @@ router.get('/stats/month', async (req, res) => {
     }
 });
 
-const HEADERS = ['账单时间', '类型', '分类', '金额', '备注', '创建时间'];
+const HEADERS = ['账单时间', '类型', '分类', '金额', '备注', '标签', '创建时间'];
 
 function buildExportFilename(month, startDate, endDate, format) {
     let base;
@@ -383,6 +458,7 @@ function writeCsv(rows, filename, res) {
             escapeCsv(row.category_name),
             formatAmount(row.amount),
             escapeCsv(row.remark),
+            escapeCsv(row.tag_names),
             formatTime(row.created_at)
         ];
         res.write(cells.join(',') + '\n');
@@ -410,6 +486,7 @@ async function writeExcel(rows, filename, res) {
             row.category_name || '',
             Number(row.amount || 0),
             row.remark || '',
+            row.tag_names || '',
             formatTime(row.created_at)
         ]);
         const lastRow = sheet.lastRow;

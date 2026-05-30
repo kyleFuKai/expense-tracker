@@ -8,6 +8,7 @@ const billRoutes = require('./routes/bills');
 const userRoutes = require('./routes/user');
 const categoryRoutes = require('./routes/categories');
 const budgetRoutes = require('./routes/budgets');
+const tagRoutes = require('./routes/tags');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -48,6 +49,7 @@ app.use('/api/bills', globalLimiter, billRoutes);
 app.use('/api/user', globalLimiter, userRoutes);
 app.use('/api/categories', globalLimiter, categoryRoutes);
 app.use('/api/budgets', globalLimiter, budgetRoutes);
+app.use('/finance/tags', globalLimiter, tagRoutes);
 
 // GET /api/health — 健康检查
 app.get('/api/health', (req, res) => {

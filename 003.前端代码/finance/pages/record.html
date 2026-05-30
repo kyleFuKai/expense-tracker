@@ -76,6 +76,37 @@
             display: grid;
             grid-template-columns: repeat(3, 1fr) 80px;
         }
+        .tag-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            border: 1px solid #ddd;
+            background: #f5f5f5;
+            color: #666;
+            user-select: none;
+        }
+        .tag-chip.selected {
+            background: #E8F0FE;
+            color: #004ac6;
+            border-color: #004ac6;
+        }
+        .tag-chip.create-btn {
+            background: #f5f5f5;
+            color: #999;
+            border: 1px dashed #bbb;
+        }
+        .tag-chip.create-btn:hover {
+            border-color: #004ac6;
+            color: #004ac6;
+        }
+        .tag-chip:hover:not(.create-btn) {
+            transform: scale(1.05);
+        }
     </style>
 </head>
 <body class="bg-background text-on-surface font-body-md min-h-screen flex flex-col items-center">
@@ -140,6 +171,16 @@
                 <input id="remark-input" class="w-full h-11 pl-11 pr-4 bg-white border border-outline-variant/30 rounded-lg focus:border-primary focus:ring-1 focus:ring-primary/20 text-body-md font-body-md" placeholder="添加备注..." type="text">
             </div>
         </div>
+        <!-- 标签选择区 -->
+        <div class="space-y-2">
+            <span class="font-label-caps text-label-caps text-on-surface-variant">标签</span>
+            <div id="tag-container" class="flex flex-wrap gap-2 items-center">
+                <div class="flex items-center py-2 text-on-surface-variant text-body-sm">
+                    <span class="material-symbols-outlined animate-spin mr-1 text-lg">progress_activity</span>
+                    加载中...
+                </div>
+            </div>
+        </div>
     </main>
 
     <!-- ==================== 自定义数字键盘（底部弹出） ==================== -->
@@ -187,6 +228,22 @@
         </div>
     </div>
 
+    <!-- ==================== 标签新建弹窗（底部弹出） ==================== -->
+    <div id="tag-create-overlay" class="fixed inset-0 z-[65] hidden items-end justify-center bg-black/30" onclick="window.hideTagCreateOverlay()">
+        <div class="w-full max-w-2xl bg-surface-container-low" onclick="event.stopPropagation()">
+            <div class="px-container-margin pt-4 pb-2 flex justify-between items-center">
+                <span class="text-body-md font-body-md font-semibold text-on-surface">新建标签</span>
+            </div>
+            <div class="px-6 pb-4">
+                <input id="tag-create-input" class="w-full h-12 bg-white border border-outline-variant/30 rounded-lg text-body-md font-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary/20 placeholder:text-outline-variant" type="text" placeholder="输入标签名称（最多 16 个字符）" maxlength="16">
+            </div>
+            <div class="px-6 pb-6 flex gap-3">
+                <button class="flex-1 h-11 bg-white border border-outline-variant/30 rounded-lg text-body-md font-body-md text-on-surface hover:bg-surface-container-high transition-colors" onclick="window.hideTagCreateOverlay()">取消</button>
+                <button id="tag-create-btn" class="flex-1 h-11 bg-primary text-on-primary rounded-lg text-body-md font-body-md hover:bg-primary-container transition-colors" onclick="window.createNewTag()">确认</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ==================== 底部导航栏 ==================== -->
     <nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-safe pt-2 bg-surface/80 backdrop-blur-xl border-t border-outline-variant/10 shadow-[0_-4px_12px_0_rgba(0,0,0,0.05)] rounded-t-xl">
         <div id="bottom-nav"></div>
@@ -206,6 +263,97 @@
         var editId = null; // 编辑模式下的账单 ID
         var originalBillTime = ''; // 编辑模式下保留原始时间
         var selectedDate = ''; // 用户选择的日期 (YYYY-MM-DD)
+
+        // ===== 标签 =====
+        var tags = []; // {id, name}
+        var selectedTagIds = [];
+        var tagContainer = document.getElementById('tag-container');
+
+        function loadTags() {
+            Auth.fetchApi('/finance/tags')
+            .then(function (result) {
+                if (result.code !== 0) {
+                    tagContainer.innerHTML = '<div class="py-2 text-body-sm text-on-surface-variant">加载失败</div>';
+                    return;
+                }
+                tags = result.data && result.data.list ? result.data.list : [];
+                renderTags();
+            });
+        }
+
+        function renderTags() {
+            var html = '';
+            var displayTags = tags.slice(0, 12);
+            displayTags.forEach(function (tag) {
+                var isSelected = selectedTagIds.indexOf(tag.id) !== -1;
+                html += '<span class="tag-chip' + (isSelected ? ' selected' : '') + '" data-id="' + tag.id + '" onclick="window.toggleTag(' + tag.id + ')">' + Auth.escapeHtml(tag.name) + '</span>';
+            });
+            if (tags.length > 12) {
+                html += '<span class="text-body-sm text-on-surface-variant self-center">...</span>';
+            }
+            html += '<span class="tag-chip create-btn" onclick="window.showTagCreateOverlay()">+ 新建</span>';
+            tagContainer.innerHTML = html;
+        }
+
+        window.toggleTag = function(id) {
+            var idx = selectedTagIds.indexOf(id);
+            if (idx === -1) {
+                selectedTagIds.push(id);
+            } else {
+                selectedTagIds.splice(idx, 1);
+            }
+            renderTags();
+        };
+
+        // 标签新建弹窗
+        var tagOverlay = document.getElementById('tag-create-overlay');
+        var tagInput = document.getElementById('tag-create-input');
+
+        window.showTagCreateOverlay = function() {
+            tagInput.value = '';
+            tagOverlay.classList.remove('hidden');
+            tagOverlay.classList.add('flex');
+            tagInput.focus();
+        };
+
+        window.hideTagCreateOverlay = function() {
+            tagOverlay.classList.add('hidden');
+            tagOverlay.classList.remove('flex');
+        };
+
+        window.createNewTag = function() {
+            var name = tagInput.value.trim();
+            if (!name) {
+                showToast('请输入标签名称');
+                return;
+            }
+            if (name.length > 16) {
+                showToast('标签名不能超过 16 个字符');
+                return;
+            }
+
+            Auth.fetchApi('/finance/tags', {
+                method: 'POST',
+                body: JSON.stringify({ name: name })
+            })
+            .then(function (result) {
+                if (result.code !== 0) {
+                    showToast(result.msg || '创建失败');
+                    return;
+                }
+                tags.push({ id: result.data.id, name: name });
+                selectedTagIds.push(result.data.id);
+                renderTags();
+                window.hideTagCreateOverlay();
+            });
+        };
+
+        tagInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                window.createNewTag();
+            }
+        });
 
         // ===== DOM =====
         var amountInput = document.getElementById('amount-input');
@@ -446,7 +594,8 @@
                 amount: amount,
                 category_id: selectedCategoryId,
                 remark: remarkInput.value.trim(),
-                bill_time: billTime
+                bill_time: billTime,
+                tag_ids: selectedTagIds
             };
 
             function handleSave(result) {
@@ -493,6 +642,8 @@
         }
 
         // ===== 初始化：先加载分类，再检查编辑模式 =====
+        // 初始化：加载标签列表
+        loadTags();
         loadCategories('EXPENSE');
 
         var params = new URLSearchParams(window.location.search);
@@ -525,6 +676,11 @@
 
                 // 设置备注
                 remarkInput.value = bill.remark || '';
+
+                // 回填标签
+                if (bill.tags && bill.tags.length > 0) {
+                    selectedTagIds = bill.tags.map(function (t) { return t.id; });
+                }
 
                 // 设置时间显示（仅显示日期）
                 if (bill.bill_time) {

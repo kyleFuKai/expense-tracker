@@ -217,6 +217,18 @@
             var sign = isExpense ? '-' : '+';
             var colorClass = categoryColors[icon] || categoryColors.default;
             var amountColor = isExpense ? 'text-danger-expense' : 'text-success-growth';
+            var tagsHtml = '';
+            if (bill.tags && bill.tags.length > 0) {
+                var displayTags = bill.tags.slice(0, 2);
+                tagsHtml = '<div class="flex gap-1 mt-1">';
+                displayTags.forEach(function (tag) {
+                    tagsHtml += '<span class="inline-block px-2 py-0.5 bg-surface-container text-outline text-[11px] rounded-full">' + Auth.escapeHtml(tag.name) + '</span>';
+                });
+                if (bill.tags.length > 2) {
+                    tagsHtml += '<span class="inline-block px-1 py-0.5 text-outline text-[11px]">+' + (bill.tags.length - 2) + '</span>';
+                }
+                tagsHtml += '</div>';
+            }
             return '<div class="flex items-center justify-between p-4 hover:bg-surface-bright transition-colors cursor-pointer" onclick="window.location.href=\'bill-detail.html?id=' + bill.id + '\'">' +
                 '<div class="flex items-center gap-4">' +
                 '<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center ' + colorClass + '">' +
@@ -224,6 +236,7 @@
                 '</div><div>' +
                 '<p class="font-body-md text-body-md text-on-surface">' + Auth.escapeHtml(remark) + '</p>' +
                 '<p class="text-label-caps font-label-caps text-outline">' + Auth.escapeHtml(catName) + '</p>' +
+                tagsHtml +
                 '</div></div>' +
                 '<span class="font-numeric-data text-numeric-data ' + amountColor + '">' + sign + fmtMoney(bill.amount) + '</span>' +
                 '</div>';

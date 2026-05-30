@@ -63,11 +63,12 @@ public class BillController {
                           @RequestParam(required = false) Long category_id,
                           @RequestParam(required = false) String type,
                           @RequestParam(required = false) String keyword,
+                          @RequestParam(required = false) Long tag_id,
                           @RequestParam(defaultValue = "1") int page,
                           @RequestParam(defaultValue = "50") int pageSize) {
         Long userId = (Long) request.getAttribute("userId");
         pageSize = Math.max(1, Math.min(Constants.MAX_PAGE_SIZE, pageSize));
-        return billService.list(userId, month, category_id, type, keyword, page, pageSize);
+        return billService.list(userId, month, category_id, type, keyword, tag_id, page, pageSize);
     }
 
     /**

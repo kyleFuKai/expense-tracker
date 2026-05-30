@@ -18,7 +18,8 @@ public interface BillMapper extends BaseMapper<Bill> {
      * 查询账单导出数据（LEFT JOIN category 获取分类名称）
      */
     @Select("<script>" +
-            "SELECT b.bill_time, b.type, c.name AS category_name, b.amount, b.remark, b.created_at " +
+            "SELECT b.bill_time, b.type, c.name AS category_name, b.amount, b.remark, b.created_at, " +
+            "(SELECT GROUP_CONCAT(bt.name SEPARATOR ', ') FROM bill_tag_rel btr JOIN bill_tag bt ON btr.tag_id = bt.id WHERE btr.bill_id = b.id) AS tag_names " +
             "FROM bill b LEFT JOIN category c ON b.category_id = c.id " +
             "WHERE b.user_id = #{userId} " +
             "<if test='month != null'> AND DATE_FORMAT(b.bill_time, '%Y-%m') = #{month} </if>" +
