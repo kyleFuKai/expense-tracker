@@ -107,6 +107,82 @@
         .tag-chip:hover:not(.create-btn) {
             transform: scale(1.05);
         }
+        .parent-tab {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 14px;
+            border-radius: 14px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            border: 1px solid #e2e8f0;
+            background: #f1f5f9;
+            color: #64748b;
+            transition: all 0.15s;
+            flex-shrink: 0;
+        }
+        .parent-tab.active {
+            background: #E8F0FE;
+            color: #004ac6;
+            border-color: #004ac6;
+            font-weight: 600;
+        }
+        .parent-tab .tab-icon {
+            font-size: 16px;
+        }
+        .child-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 4px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+            border: 2px solid transparent;
+        }
+        .child-btn:hover {
+            background: #f8f9ff;
+        }
+        .child-btn.selected {
+            border-color: #004ac6;
+            background: #E8F0FE;
+        }
+        .child-btn .child-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            background: #f1f5f9;
+            transition: all 0.15s;
+        }
+        .child-btn.selected .child-icon {
+            background: #dbeafe;
+        }
+        .child-label {
+            font-size: 11px;
+            color: #64748b;
+            text-align: center;
+            line-height: 1.2;
+        }
+        .child-btn.selected .child-label {
+            color: #004ac6;
+            font-weight: 600;
+        }
+        .empty-sub-msg {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 13px;
+            padding: 24px 0;
+            grid-column: 1 / -1;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="bg-background text-on-surface font-body-md min-h-screen flex flex-col items-center">
@@ -151,8 +227,11 @@
                 </div>
             </div>
 
-            <!-- 分类选择网格（动态渲染） -->
-            <div id="category-grid" class="grid grid-cols-4 gap-y-6 pt-4">
+            <!-- 父分类 Tab（横向滚动） -->
+            <div id="category-tabs" class="flex gap-2 overflow-x-auto pb-2 no-scrollbar"></div>
+
+            <!-- 子分类选择网格（动态渲染） -->
+            <div id="category-grid" class="grid grid-cols-4 gap-y-6 pt-2">
                 <div class="col-span-4 flex items-center justify-center py-8 text-on-surface-variant">
                     <span class="material-symbols-outlined animate-spin mr-2">progress_activity</span>
                     加载分类中...
@@ -482,74 +561,147 @@
         tabExpense.addEventListener('click', function () { setActiveType('EXPENSE'); });
         tabIncome.addEventListener('click', function () { setActiveType('INCOME'); });
 
-        // ===== 加载分类 =====
+        // ===== 分类（两级） =====
+        var allCats = [];
+        var parents = [];
+        var activeParentId = null;
+
         function loadCategories(type) {
             selectedCategoryId = null;
             selectedCategoryName = '';
-            categoryGrid.innerHTML = '<div class="col-span-4 flex items-center justify-center py-8 text-on-surface-variant"><span class="material-symbols-outlined animate-spin mr-2">progress_activity</span>加载分类中...</div>';
+            activeParentId = null;
+
+            var tabsContainer = document.getElementById('category-tabs');
+            var gridContainer = document.getElementById('category-grid');
+            tabsContainer.innerHTML = '';
+            gridContainer.innerHTML = '<div class="col-span-4 flex items-center justify-center py-8 text-on-surface-variant"><span class="material-symbols-outlined animate-spin mr-2">progress_activity</span>加载分类中...</div>';
 
             Auth.fetchApi('/categories?type=' + type)
             .then(function (result) {
                 if (result.code !== 0) {
-                    categoryGrid.innerHTML = '<div class="col-span-4 text-center text-on-surface-variant py-8">加载分类失败</div>';
+                    gridContainer.innerHTML = '<div class="col-span-4 text-center text-on-surface-variant py-8">加载分类失败</div>';
                     return;
                 }
 
-                var cats = result.data;
-                var html = '';
-                if (cats.length === 0) {
-                    html = '<div class="col-span-4 text-center text-on-surface-variant py-8">暂无分类</div>';
-                } else {
-                    cats.forEach(function (cat) {
-                        html += '<button class="cat-btn flex flex-col items-center gap-2 group" data-id="' + cat.id + '" data-name="' + cat.name + '" data-icon="' + (cat.icon || 'more_horiz') + '">';
-                        html += '<div class="w-12 h-12 rounded-full bg-surface-container text-on-surface-variant flex items-center justify-center group-hover:scale-105 transition-transform">';
-                        html += '<span class="material-symbols-outlined">' + (cat.icon || 'more_horiz') + '</span>';
-                        html += '</div>';
-                        html += '<span class="text-label-caps font-label-caps text-on-surface">' + cat.name + '</span>';
-                        html += '</button>';
-                    });
-                }
-                categoryGrid.innerHTML = html;
+                allCats = result.data;
 
-                // 绑定分类点击事件
-                document.querySelectorAll('.cat-btn').forEach(function (btn) {
-                    btn.addEventListener('click', function () {
-                        // 取消之前的选中
-                        document.querySelectorAll('.cat-btn').forEach(function (b) {
-                            b.querySelector('div').className = 'w-12 h-12 rounded-full bg-surface-container text-on-surface-variant flex items-center justify-center group-hover:scale-105 transition-transform';
-                        });
-                        // 设置当前选中
-                        var icon = btn.getAttribute('data-icon');
-                        var color = getCategoryColor(icon);
-                        btn.querySelector('div').className = 'w-12 h-12 rounded-full ' + color + ' flex items-center justify-center transition-transform';
-                        selectedCategoryId = parseInt(btn.getAttribute('data-id'));
-                        selectedCategoryName = btn.getAttribute('data-name');
+                var parentMap = {};
+                var childrenMap = {};
+                var parentList = [];
 
-                        // 其他支出：显示备注提示
-                        var tip = document.getElementById('other-remark-tip');
-                        if (selectedCategoryName === '其他支出') {
-                            tip.classList.remove('hidden');
-                        } else {
-                            tip.classList.add('hidden');
-                        }
-                    });
+                allCats.forEach(function (cat) {
+                    var pid = cat.parent_id || 0;
+                    if (pid === 0) {
+                        parentMap[cat.id] = { id: cat.id, name: cat.name, icon: cat.icon || 'more_horiz', children: [] };
+                        parentList.push(cat.id);
+                    } else {
+                        if (!childrenMap[pid]) childrenMap[pid] = [];
+                        childrenMap[pid].push(cat);
+                    }
                 });
+
+                parentList.forEach(function (pid) {
+                    parentMap[pid].children = childrenMap[pid] || [];
+                });
+
+                parents = parentList.map(function (pid) { return parentMap[pid]; });
+
+                renderTabs();
+
+                if (parents.length > 0) {
+                    selectParent(parents[0].id);
+                }
             });
         }
 
-        function getCategoryColor(icon) {
+        function renderTabs() {
+            var tabsContainer = document.getElementById('category-tabs');
+            var html = '';
+            parents.forEach(function (p) {
+                html += '<div class="parent-tab' + (activeParentId === p.id ? ' active' : '') + '" data-parent-id="' + p.id + '" onclick="window.selectParentTab(' + p.id + ')">';
+                html += '<span class="tab-icon material-symbols-outlined" style="font-size:16px">' + p.icon + '</span>';
+                html += Auth.escapeHtml(p.name);
+                html += '</div>';
+            });
+            tabsContainer.innerHTML = html;
+        }
+
+        window.selectParentTab = function(parentId) {
+            activeParentId = parentId;
+            renderTabs();
+            renderChildren(parentId);
+        };
+
+        function selectParent(parentId) {
+            activeParentId = parentId;
+            renderTabs();
+            renderChildren(parentId);
+        }
+
+        function renderChildren(parentId) {
+            var parent = parents.find(function (p) { return p.id === parentId; });
+            if (!parent) return;
+
+            var gridContainer = document.getElementById('category-grid');
+            var children = parent.children || [];
+
+            if (children.length === 0) {
+                var html = '';
+                html += '<div class="col-span-4 empty-sub-msg">该分类暂无子分类</div>';
+                html += '<div class="col-span-4 flex flex-col items-center gap-2">';
+                html += '<div class="child-btn selected" data-id="' + parent.id + '" data-name="' + Auth.escapeHtml(parent.name) + '" data-icon="' + parent.icon + '" onclick="window.selectCategory(this)">';
+                html += '<div class="child-icon" style="background:' + getCategoryBgColor(parent.icon) + '">';
+                html += '<span class="material-symbols-outlined" style="font-variation-settings: \'FILL\' 1; font-size:22px;">' + parent.icon + '</span>';
+                html += '</div>';
+                html += '<div class="child-label" style="color:#004ac6;font-weight:600">' + Auth.escapeHtml(parent.name) + '</div>';
+                html += '</div></div>';
+                gridContainer.innerHTML = html;
+
+                selectedCategoryId = parent.id;
+                selectedCategoryName = parent.name;
+            } else {
+                var html = '';
+                children.forEach(function (child) {
+                    html += '<div class="child-btn" data-id="' + child.id + '" data-name="' + Auth.escapeHtml(child.name) + '" data-icon="' + (child.icon || 'more_horiz') + '" onclick="window.selectCategory(this)">';
+                    html += '<div class="child-icon" style="background:' + getCategoryBgColor(child.icon) + '">';
+                    html += '<span class="material-symbols-outlined" style="font-variation-settings: \'FILL\' 1; font-size:22px;">' + (child.icon || 'more_horiz') + '</span>';
+                    html += '</div>';
+                    html += '<div class="child-label">' + Auth.escapeHtml(child.name) + '</div>';
+                    html += '</div>';
+                });
+                gridContainer.innerHTML = html;
+            }
+        }
+
+        window.selectCategory = function (el) {
+            document.querySelectorAll('.child-btn').forEach(function (b) {
+                b.classList.remove('selected');
+            });
+            el.classList.add('selected');
+            selectedCategoryId = parseInt(el.getAttribute('data-id'));
+            selectedCategoryName = el.getAttribute('data-name');
+
+            var tip = document.getElementById('other-remark-tip');
+            if (selectedCategoryName === '其他支出') {
+                tip.classList.remove('hidden');
+            } else {
+                tip.classList.add('hidden');
+            }
+        };
+
+        function getCategoryBgColor(icon) {
             var colors = {
-                restaurant: 'bg-orange-100 text-orange-500',
-                directions_car: 'bg-blue-100 text-blue-500',
-                shopping_bag: 'bg-purple-100 text-purple-500',
-                movie: 'bg-red-100 text-red-500',
-                home: 'bg-indigo-100 text-indigo-500',
-                medical_services: 'bg-green-100 text-green-500',
-                school: 'bg-teal-100 text-teal-500',
-                group: 'bg-pink-100 text-pink-500',
-                payments: 'bg-green-100 text-green-600',
-                more_horiz: 'bg-gray-100 text-gray-500',
-                default: 'bg-primary/10 text-primary'
+                restaurant: '#fef3c7',
+                directions_car: '#e0f2fe',
+                shopping_bag: '#ede9fe',
+                movie: '#fce7f3',
+                home: '#e0e7ff',
+                medical_services: '#dcfce7',
+                school: '#ccfbf1',
+                group: '#fce7f3',
+                payments: '#dcfce7',
+                more_horiz: '#f1f5f9',
+                default: '#dbeafe'
             };
             return colors[icon] || colors.default;
         }
@@ -697,11 +849,28 @@
 
                 // 分类渲染后自动选中
                 setTimeout(function () {
-                    document.querySelectorAll('.cat-btn').forEach(function (btn) {
-                        if (parseInt(btn.getAttribute('data-id')) === bill.category_id) {
-                            btn.click();
+                    var targetId = bill.category_id;
+                    for (var i = 0; i < parents.length; i++) {
+                        var p = parents[i];
+                        if (p.id === targetId) {
+                            selectParent(p.id);
+                            setTimeout(function () {
+                                var btn = document.querySelector('.child-btn[data-id="' + targetId + '"]');
+                                if (btn) btn.click();
+                            }, 50);
+                            return;
                         }
-                    });
+                        for (var j = 0; j < p.children.length; j++) {
+                            if (p.children[j].id === targetId) {
+                                selectParent(p.id);
+                                setTimeout(function () {
+                                    var btn = document.querySelector('.child-btn[data-id="' + targetId + '"]');
+                                    if (btn) btn.click();
+                                }, 50);
+                                return;
+                            }
+                        }
+                    }
                 }, 500);
             });
         }
