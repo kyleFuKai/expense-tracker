@@ -565,6 +565,7 @@
         var allCats = [];
         var parents = [];
         var activeParentId = null;
+        var pendingSelectCategoryId = null; // 编辑模式下待选中的分类 ID
 
         function loadCategories(type) {
             selectedCategoryId = null;
@@ -611,7 +612,37 @@
                 if (parents.length > 0) {
                     selectParent(parents[0].id);
                 }
+
+                // 编辑模式下，自动选中目标分类
+                if (pendingSelectCategoryId !== null) {
+                    autoSelectCategory(pendingSelectCategoryId);
+                    pendingSelectCategoryId = null;
+                }
             });
+        }
+
+        function autoSelectCategory(targetId) {
+            for (var i = 0; i < parents.length; i++) {
+                var p = parents[i];
+                if (p.id === targetId) {
+                    selectParent(p.id);
+                    setTimeout(function () {
+                        var btn = document.querySelector('.child-btn[data-id="' + targetId + '"]');
+                        if (btn) btn.click();
+                    }, 50);
+                    return;
+                }
+                for (var j = 0; j < p.children.length; j++) {
+                    if (p.children[j].id === targetId) {
+                        selectParent(p.id);
+                        setTimeout(function () {
+                            var btn = document.querySelector('.child-btn[data-id="' + targetId + '"]');
+                            if (btn) btn.click();
+                        }, 50);
+                        return;
+                    }
+                }
+            }
         }
 
         function renderTabs() {
@@ -845,33 +876,9 @@
                 }
 
                 // 设置账单类型并重新加载对应分类
+                // 设置待选中分类 ID，loadCategories 完成后会自动选中
+                pendingSelectCategoryId = bill.category_id;
                 setActiveType(bill.type);
-
-                // 分类渲染后自动选中
-                setTimeout(function () {
-                    var targetId = bill.category_id;
-                    for (var i = 0; i < parents.length; i++) {
-                        var p = parents[i];
-                        if (p.id === targetId) {
-                            selectParent(p.id);
-                            setTimeout(function () {
-                                var btn = document.querySelector('.child-btn[data-id="' + targetId + '"]');
-                                if (btn) btn.click();
-                            }, 50);
-                            return;
-                        }
-                        for (var j = 0; j < p.children.length; j++) {
-                            if (p.children[j].id === targetId) {
-                                selectParent(p.id);
-                                setTimeout(function () {
-                                    var btn = document.querySelector('.child-btn[data-id="' + targetId + '"]');
-                                    if (btn) btn.click();
-                                }, 50);
-                                return;
-                            }
-                        }
-                    }
-                }, 500);
             });
         }
     })();
