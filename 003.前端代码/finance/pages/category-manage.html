@@ -154,6 +154,12 @@
                         <button id="dialog-type-income" class="flex-1 py-2 text-label-caps font-label-caps text-on-surface-variant rounded-lg">收入</button>
                     </div>
                 </div>
+                <div>
+                    <label class="text-body-sm text-on-surface-variant mb-1 block">上级分类</label>
+                    <select id="dialog-parent" class="w-full h-11 bg-surface-container-low border border-outline-variant rounded-lg px-3 text-body-md">
+                        <option value="0">无（作为一级分类）</option>
+                    </select>
+                </div>
                 <div class="flex gap-3">
                     <button onclick="closeDialog()" class="flex-1 h-11 border border-outline-variant rounded-xl text-body-md text-on-surface-variant hover:bg-surface-container transition-all">取消</button>
                     <button onclick="saveNewCategory()" class="flex-1 h-11 bg-primary text-on-primary rounded-xl text-body-md font-medium">保存</button>
@@ -219,9 +225,26 @@
                 if (cats.length === 0) {
                     html = '<div class="col-span-full text-center text-on-surface-variant py-12">暂无分类</div>';
                 } else {
+                    // 分组：父分类和子分类
+                    var parentList = [];
+                    var childrenMap = {};
                     cats.forEach(function (cat) {
+                        var pid = cat.parent_id || 0;
+                        if (pid === 0) {
+                            parentList.push(cat);
+                        } else {
+                            if (!childrenMap[pid]) childrenMap[pid] = [];
+                            childrenMap[pid].push(cat);
+                        }
+                    });
+
+                    // 渲染：父分类 + 子分类（缩进）
+                    parentList.forEach(function (cat) {
                         var icon = cat.icon || 'more_horiz';
-                        html += '<div class="flex flex-col items-center justify-center aspect-square bg-surface-container-lowest shadow-sm rounded-2xl p-card-padding relative group border border-transparent hover:border-primary-container transition-all cursor-pointer" data-id="' + cat.id + '" data-name="' + Auth.escapeHtml(cat.name) + '" data-preset="' + cat.is_preset + '" onclick="showCategoryActions(this)">';
+                        var children = childrenMap[cat.id] || [];
+
+                        // 父分类
+                        html += '<div class="flex flex-col items-center justify-center aspect-square bg-surface-container-lowest shadow-sm rounded-2xl p-card-padding relative border border-transparent hover:border-primary-container transition-all cursor-pointer" data-id="' + cat.id + '" data-name="' + Auth.escapeHtml(cat.name) + '" data-preset="' + cat.is_preset + '" onclick="showCategoryActions(this)">';
                         html += '<div class="w-12 h-12 flex items-center justify-center rounded-full bg-surface-container-highest text-primary mb-2">';
                         html += '<span class="material-symbols-outlined" style="font-variation-settings: \'FILL\' 1;">' + icon + '</span>';
                         html += '</div>';
@@ -232,10 +255,47 @@
                             html += '<span class="text-[9px] text-primary mt-1">自定义</span>';
                         }
                         html += '</div>';
+
+                        // 子分类（缩进显示在父分类下方）
+                        if (children.length > 0) {
+                            html += '<div class="col-span-full pl-4 border-l-2 border-primary/20 grid grid-cols-3 gap-4 mb-4"></div>';
+                            children.forEach(function (child) {
+                                var childIcon = child.icon || 'more_horiz';
+                                html += '<div class="flex flex-col items-center justify-center aspect-square bg-surface-container-lowest/50 shadow-sm rounded-xl p-card-padding relative border border-transparent hover:border-primary-container/50 transition-all cursor-pointer ml-2" data-id="' + child.id + '" data-name="' + Auth.escapeHtml(child.name) + '" data-preset="' + child.is_preset + '" onclick="showCategoryActions(this)">';
+                                html += '<div class="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container text-primary mb-2">';
+                                html += '<span class="material-symbols-outlined" style="font-variation-settings: \'FILL\' 1; font-size:20px;">' + childIcon + '</span>';
+                                html += '</div>';
+                                html += '<span class="text-[11px] font-label-caps text-on-surface">' + Auth.escapeHtml(child.name) + '</span>';
+                                if (!child.is_preset) {
+                                    html += '<span class="text-[9px] text-primary mt-1">自定义</span>';
+                                }
+                                html += '</div>';
+                            });
+                        }
                     });
                 }
 
                 grid.innerHTML = html;
+            });
+        }
+
+        // 加载父分类列表（用于创建子分类时的上级分类选择）
+        function loadParentCategories() {
+            var select = document.getElementById('dialog-parent');
+            select.value = '0';
+
+            Auth.fetchApi('/categories?type=' + currentType.toUpperCase())
+            .then(function (result) {
+                if (result.code !== 0) return;
+
+                var cats = result.data;
+                var html = '<option value="0">无（作为一级分类）</option>';
+                cats.forEach(function (cat) {
+                    if (!cat.parent_id || cat.parent_id === 0) {
+                        html += '<option value="' + cat.id + '">' + Auth.escapeHtml(cat.name) + '</option>';
+                    }
+                });
+                select.innerHTML = html;
             });
         }
 
@@ -266,6 +326,9 @@
             dialogType = currentType.toUpperCase() === 'EXPENSE' ? 'EXPENSE' : 'INCOME';
             document.getElementById('dialog-type-expense').className = dialogType === 'EXPENSE' ? 'flex-1 py-2 text-label-caps font-label-caps bg-surface-container-lowest text-danger-expense shadow-sm rounded-lg' : 'flex-1 py-2 text-label-caps font-label-caps text-on-surface-variant rounded-lg';
             document.getElementById('dialog-type-income').className = dialogType === 'INCOME' ? 'flex-1 py-2 text-label-caps font-label-caps bg-surface-container-lowest text-success-growth shadow-sm rounded-lg' : 'flex-1 py-2 text-label-caps font-label-caps text-on-surface-variant rounded-lg';
+
+            // 加载父分类选项
+            loadParentCategories();
 
             // 渲染图标选择器
             var iconHtml = '';
@@ -298,9 +361,11 @@
                 return;
             }
 
+            var parentId = parseInt(document.getElementById('dialog-parent').value);
+
             Auth.fetchApi('/categories', {
                 method: 'POST',
-                body: JSON.stringify({ name: name, icon: selectedIcon, type: dialogType })
+                body: JSON.stringify({ name: name, icon: selectedIcon, type: dialogType, parent_id: parentId })
             })
             .then(function (result) {
                 if (result.code === 0) {
