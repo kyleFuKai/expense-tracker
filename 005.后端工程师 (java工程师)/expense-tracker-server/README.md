@@ -110,7 +110,7 @@ var API_BASE = 'http://localhost:8080';
 
 ```
 expense-tracker-server/
-├── src/main/java/com/expense/
+├── src/main/java/com/xingzhewk/
 │   ├── controller/          # 控制器
 │   ├── service/             # 业务逻辑
 │   ├── mapper/              # 数据访问
@@ -127,7 +127,7 @@ expense-tracker-server/
 │   ├── application.yml
 │   ├── application-dev.yml
 │   └── application-prod.yml
-└── src/test/java/com/expense/
+└── src/test/java/com/xingzhewk/
     ├── controller/
     │   └── BillExportControllerTest.java   # 10 用例：账单导出 API
     └── service/
