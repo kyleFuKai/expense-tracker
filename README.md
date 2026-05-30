@@ -94,7 +94,7 @@ var API_BASE = 'http://localhost:8080';
 │       │       ├── BudgetServiceTest.java          # 6 用例：预算仪表盘
 │       │       └── UserServiceTest.java            # 9 用例：登录防爆破
 │       └── src/main/
-│           ├── java/com/expense/
+│           ├── java/com/xingzhewk/
 │           │   ├── controller/       # 控制器（Auth / User / Bill / Category / Budget）
 │           │   ├── service/          # 业务逻辑接口 + 实现
 │           │   ├── mapper/           # MyBatis-Plus 数据访问层
