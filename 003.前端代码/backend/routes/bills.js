@@ -325,6 +325,15 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
+// 计算上月日期 YYYY-MM
+function getPrevMonth(m) {
+    var parts = m.split('-');
+    var y = parseInt(parts[0]);
+    var mo = parseInt(parts[1]) - 1;
+    if (mo < 1) { mo = 12; y--; }
+    return y + '-' + (mo < 10 ? '0' + mo : mo);
+}
+
 // GET /api/bills/stats — 月度统计
 router.get('/stats/month', async (req, res) => {
     const { user } = req;
@@ -383,11 +392,30 @@ router.get('/stats/month', async (req, res) => {
             params
         );
 
+        // 计算上月日期
+        const prevMonth = month ? getPrevMonth(month) : getPrevMonth(new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0'));
+
+        // 查询上月数据
+        const [[{ expense: prevExpenseTotal }]] = await pool.query(
+            "SELECT COALESCE(SUM(amount), 0) AS expense FROM bill WHERE user_id = ? AND type = 'EXPENSE' AND DATE_FORMAT(bill_time, '%Y-%m') = ?",
+            [user.id, prevMonth]
+        );
+        const [[{ income: prevIncomeTotal }]] = await pool.query(
+            "SELECT COALESCE(SUM(amount), 0) AS income FROM bill WHERE user_id = ? AND type = 'INCOME' AND DATE_FORMAT(bill_time, '%Y-%m') = ?",
+            [user.id, prevMonth]
+        );
+
+        const calcChange = (curr, prev) => {
+            const c = parseFloat(curr);
+            const p = parseFloat(prev);
+            return p > 0 ? parseFloat(((c - p) / p * 100).toFixed(1)) : null;
+        };
+
         res.json({
             code: 0,
             data: {
-                expense: { total: parseFloat(expense.total), count: expense.count },
-                income: { total: parseFloat(income.total), count: income.count },
+                expense: { total: parseFloat(expense.total), count: expense.count, change: calcChange(expense.total, prevExpenseTotal) },
+                income: { total: parseFloat(income.total), count: income.count, change: calcChange(income.total, prevIncomeTotal) },
                 daily: dailyStats.map(function (d) { return { date: d.date, expense: parseFloat(d.expense), income: parseFloat(d.income) }; }),
                 categories: categoryStats.map(function (c) { return { id: c.id, name: c.name, icon: c.icon, total: parseFloat(c.total), count: c.count }; })
             }
