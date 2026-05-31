@@ -120,6 +120,7 @@
                     <p class="font-label-caps text-label-caps text-on-surface-variant mb-2">总支出</p>
                     <h3 id="stat-expense" class="font-display-hero text-display-hero-mobile text-on-surface">¥0</h3>
                     <div id="stat-expense-count" class="mt-2 text-body-sm text-on-surface-variant">0 笔支出</div>
+                    <div id="stat-expense-change" class="mt-1 text-body-sm"></div>
                 </div>
                 <div class="absolute -right-6 -bottom-6 opacity-10">
                     <span class="material-symbols-outlined text-[120px]">account_balance</span>
@@ -147,6 +148,7 @@
                     <span id="stat-income" class="font-numeric-data text-numeric-data text-success-growth">¥0</span>
                 </div>
                 <div class="mt-4 text-body-sm text-on-surface-variant" id="stat-income-count">0 笔收入</div>
+                <div id="stat-income-change" class="mt-1 text-body-sm"></div>
             </div>
 
             <!-- 分类排行 -->
@@ -223,9 +225,35 @@
                 document.getElementById('stat-expense').textContent = '¥' + parseFloat(data.expense.total).toFixed(2);
                 document.getElementById('stat-expense-count').textContent = data.expense.count + ' 笔支出';
 
+                // 环比 - 支出
+                var expChangeEl = document.getElementById('stat-expense-change');
+                if (data.expense.change !== null && data.expense.change !== undefined) {
+                    var ch = data.expense.change;
+                    var arrow = ch >= 0 ? '↑' : '↓';
+                    var colorClass = ch >= 0 ? 'text-danger-expense' : 'text-success-growth';
+                    expChangeEl.className = 'mt-1 text-body-sm font-medium ' + colorClass;
+                    expChangeEl.textContent = arrow + ' ' + Math.abs(ch) + '% 较上月';
+                } else {
+                    expChangeEl.textContent = '-- 较上月';
+                    expChangeEl.className = 'mt-1 text-body-sm text-on-surface-variant';
+                }
+
                 // 收入
                 document.getElementById('stat-income').textContent = '¥' + parseFloat(data.income.total).toFixed(2);
                 document.getElementById('stat-income-count').textContent = data.income.count + ' 笔收入';
+
+                // 环比 - 收入
+                var incChangeEl = document.getElementById('stat-income-change');
+                if (data.income.change !== null && data.income.change !== undefined) {
+                    var ch = data.income.change;
+                    var arrow = ch >= 0 ? '↑' : '↓';
+                    var colorClass = ch >= 0 ? 'text-success-growth' : 'text-danger-expense';
+                    incChangeEl.className = 'mt-1 text-body-sm font-medium ' + colorClass;
+                    incChangeEl.textContent = arrow + ' ' + Math.abs(ch) + '% 较上月';
+                } else {
+                    incChangeEl.textContent = '-- 较上月';
+                    incChangeEl.className = 'mt-1 text-body-sm text-on-surface-variant';
+                }
 
                 // 趋势图 (取最近 15 天)
                 renderTrendChart(data.daily.slice(0, 15).reverse());
