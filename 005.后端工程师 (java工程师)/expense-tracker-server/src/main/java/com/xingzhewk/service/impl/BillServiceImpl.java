@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -312,6 +313,20 @@ public class BillServiceImpl implements BillService {
         stats.setIncome(income);
         stats.setDaily(dailyStats);
         stats.setCategories(categoryStats);
+
+        // 计算上月环比
+        LocalDateTime prevMonthStart = start.minusMonths(1);
+        LocalDateTime prevMonthEnd = start;
+
+        String prevStartStr = prevMonthStart.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + " 00:00:00";
+        String prevEndStr = prevMonthEnd.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + " 00:00:00";
+
+        BigDecimal prevExpense = billMapper.selectSumAmount(userId, prevStartStr, prevEndStr);
+        BigDecimal prevIncome = billMapper.selectSumIncome(userId, prevStartStr, prevEndStr);
+
+        stats.setExpenseChange(calculateChange(expenseTotal, prevExpense));
+        stats.setIncomeChange(calculateChange(incomeTotal, prevIncome));
+
         return Result.success(stats);
     }
 
@@ -346,5 +361,15 @@ public class BillServiceImpl implements BillService {
             rel.setTagId(tagId);
             billTagRelMapper.insert(rel);
         }
+    }
+
+    /** 计算环比百分比，上月为 0 时返回 null */
+    private BigDecimal calculateChange(BigDecimal current, BigDecimal previous) {
+        if (previous == null || previous.compareTo(BigDecimal.ZERO) == 0) {
+            return null;
+        }
+        return current.subtract(previous)
+                .multiply(BigDecimal.valueOf(100))
+                .divide(previous, 1, RoundingMode.HALF_UP);
     }
 }
