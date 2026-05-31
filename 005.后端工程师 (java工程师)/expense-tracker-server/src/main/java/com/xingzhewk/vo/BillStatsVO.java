@@ -24,6 +24,12 @@ public class BillStatsVO {
     /** 分类排行（按金额降序） */
     private List<CategoryStat> categories;
 
+    /** 支出环比（%），正数=增长，负数=下降，null=上月为0无环比 */
+    private BigDecimal expenseChange;
+
+    /** 收入环比（%），正数=增长，负数=下降，null=上月为0无环比 */
+    private BigDecimal incomeChange;
+
     /** 收支汇总项 */
     @Data
     public static class StatsItem {
