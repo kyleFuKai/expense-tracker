@@ -65,4 +65,16 @@ public interface BillMapper extends BaseMapper<Bill> {
             @Param("startDate") String startDate,
             @Param("endDate") String endDate
     );
+
+    /**
+     * 汇总某用户某段时间内的收入金额
+     */
+    @Select("SELECT COALESCE(SUM(amount), 0) FROM bill " +
+            "WHERE user_id = #{userId} AND type = 'INCOME' " +
+            "AND bill_time >= #{startDate} AND bill_time <= #{endDate}")
+    BigDecimal selectSumIncome(
+            @Param("userId") Long userId,
+            @Param("startDate") String startDate,
+            @Param("endDate") String endDate
+    );
 }
