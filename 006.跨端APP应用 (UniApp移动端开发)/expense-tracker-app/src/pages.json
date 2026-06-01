@@ -1,0 +1,97 @@
+{
+  "pages": [
+    {
+      "path": "pages/login/index",
+      "style": {
+        "navigationBarTitleText": "登录",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/home/index",
+      "style": {
+        "navigationBarTitleText": "每日财务管家"
+      }
+    },
+    {
+      "path": "pages/statistics/index",
+      "style": {
+        "navigationBarTitleText": "统计"
+      }
+    },
+    {
+      "path": "pages/record/index",
+      "style": {
+        "navigationBarTitleText": "快速记账"
+      }
+    },
+    {
+      "path": "pages/bill-detail/index",
+      "style": {
+        "navigationBarTitleText": "账单详情"
+      }
+    },
+    {
+      "path": "pages/category-manage/index",
+      "style": {
+        "navigationBarTitleText": "类别管理"
+      }
+    },
+    {
+      "path": "pages/budget/index",
+      "style": {
+        "navigationBarTitleText": "预算设置"
+      }
+    },
+    {
+      "path": "pages/settings/index",
+      "style": {
+        "navigationBarTitleText": "我的"
+      }
+    },
+    {
+      "path": "pages/change-password/index",
+      "style": {
+        "navigationBarTitleText": "修改密码"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "每日财务管家",
+    "navigationBarBackgroundColor": "#f8f9ff",
+    "backgroundColor": "#F8FAFC"
+  },
+  "tabBar": {
+    "color": "#434655",
+    "selectedColor": "#004ac6",
+    "borderStyle": "black",
+    "backgroundColor": "#f8f9ff",
+    "list": [
+      {
+        "pagePath": "pages/home/index",
+        "text": "首页",
+        "iconPath": "static/tab-home.png",
+        "selectedIconPath": "static/tab-home-active.png"
+      },
+      {
+        "pagePath": "pages/statistics/index",
+        "text": "统计",
+        "iconPath": "static/tab-stats.png",
+        "selectedIconPath": "static/tab-stats-active.png"
+      },
+      {
+        "pagePath": "pages/record/index",
+        "text": "记账",
+        "iconPath": "static/tab-record.png",
+        "selectedIconPath": "static/tab-record-active.png"
+      },
+      {
+        "pagePath": "pages/settings/index",
+        "text": "我的",
+        "iconPath": "static/tab-settings.png",
+        "selectedIconPath": "static/tab-settings-active.png"
+      }
+    ]
+  }
+}
