@@ -27,10 +27,11 @@ public class AuthController {
      * 手机号注册
      *
      * @param dto 注册参数，包含 phone（11位手机号）、password（6-20位，含大小写字母+数字+特殊字符）、nickname（昵称）
-     * @return 用户ID，code=409 表示手机号已注册
+     * @return 登录态信息：token、userId、nickname。code=409 表示手机号已注册。
+     *         DIFFS #4：与 Node 后端对齐——注册即登录，前端不用再调 /login。
      */
     @PostMapping("/register")
-    public Result<Long> register(@Valid @RequestBody RegisterDTO dto) {
+    public Result<LoginVO> register(@Valid @RequestBody RegisterDTO dto) {
         return userService.register(dto);
     }
 

@@ -21,9 +21,10 @@ public interface UserService {
      * 手机号注册
      *
      * @param dto 注册参数（phone、password、nickname）
-     * @return {id: 用户ID}，code=409 表示手机号已注册
+     * @return 登录态：token + userId + nickname，注册即登录（与 Node 对齐）
+     *         code=409 表示手机号已注册
      */
-    Result<Long> register(RegisterDTO dto);
+    Result<LoginVO> register(RegisterDTO dto);
 
     /**
      * 手机号密码登录

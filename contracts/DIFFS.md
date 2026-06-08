@@ -70,6 +70,7 @@
 
 ### #4 `[compat]` `/api/auth/register` 响应差异
 
+- **状态**：✅ done (Java 改 AuthController/UserService 返 LoginVO{token,userId,nickname}，2026-06-08)
 - **现状**：Node 返回 `{token, userId}`（注册即登录）。Java 返回 `Long`（仅 userId，需再调 login）。
 - **契约位置**：[openapi.yaml POST /api/auth/register](openapi.yaml)（标注 `x-implemented-by-node`）
 - **修复方向**：二选一
@@ -93,6 +94,7 @@
 
 ### #6 `[compat]` `/api/bills` 不支持 `tag_id` 过滤
 
+- **状态**：✅ done (Java 端 controller + service 已实现，DIFFS 描述不准确；本批加注释明示 tagId 安全性，2026-06-08)
 - **现状**：Node `bills.js:62` 完整支持 `INNER JOIN bill_tag_rel` + 复合 WHERE。Java `BillController` 不接 `tagId`，`BillServiceImpl.list` 也不带 join。
 - **契约位置**：[openapi.yaml GET /api/bills → tag_id parameter](openapi.yaml)
 - **修复方向**：Java
@@ -102,6 +104,7 @@
 
 ### #7 `[compat]` `/api/bills/{id}` 详情字段差异
 
+- **状态**：✅ done (Node bills.js:147 用 `b.*` 通配，is_recurring/updated_at 本就包含，2026-06-08)
 - **现状**：Node 返 `category_name, category_icon`；Java 返 `category_name, category_icon, ...is_recurring, updated_at`（更全）。
 - **契约位置**：[openapi.yaml BillDetail](openapi.yaml)
 - **修复方向**：Node 端 `bills.js:178` 把 join 的 `category_name, category_icon` 加上 `is_recurring, updated_at` 即可
@@ -109,6 +112,7 @@
 
 ### #8 `[compat]` `/api/bills/stats/month` 响应结构
 
+- **状态**：✅ done (Java BillStatsVO 改嵌入式 + 删顶层 expenseChange/incomeChange，2026-06-08)
 - **现状**：
   - Node：`{expense: {total, count, change}, income: {total, count, change}}`
   - Java：`{expense: {total, count}, income: {total, count}, expenseChange, incomeChange}`

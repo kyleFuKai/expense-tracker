@@ -60,6 +60,8 @@ public class BillServiceImpl implements BillService {
             wrapper.like(Bill::getRemark, keyword);
         }
         if (tagId != null) {
+            // DIFFS #6：tagId 来自 Long 类型 param，字符串拼接无注入面
+            // 改用 inSql 同步契约要求的"按 tag 过滤"行为
             wrapper.inSql(Bill::getId,
                     "SELECT bill_id FROM bill_tag_rel WHERE tag_id = " + tagId);
         }
@@ -324,8 +326,9 @@ public class BillServiceImpl implements BillService {
         BigDecimal prevExpense = billMapper.selectSumAmount(userId, prevStartStr, prevEndStr);
         BigDecimal prevIncome = billMapper.selectSumIncome(userId, prevStartStr, prevEndStr);
 
-        stats.setExpenseChange(calculateChange(expenseTotal, prevExpense));
-        stats.setIncomeChange(calculateChange(incomeTotal, prevIncome));
+        // DIFFS #8：change 嵌在 expense/inchange 子对象里（与 Node 对齐）
+        expense.setChange(calculateChange(expenseTotal, prevExpense));
+        income.setChange(calculateChange(incomeTotal, prevIncome));
 
         return Result.success(stats);
     }

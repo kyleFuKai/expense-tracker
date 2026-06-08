@@ -58,7 +58,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Result<Long> register(RegisterDTO dto) {
+    public Result<LoginVO> register(RegisterDTO dto) {
         String phone = dto.getPhone().replaceAll("\\s", "");
         if (!PHONE_PATTERN.matcher(phone).matches()) {
             throw new BusinessException(400, "手机号格式不正确");
@@ -91,8 +91,16 @@ public class UserServiceImpl implements UserService {
         user.setStatus(1);
 
         userMapper.insert(user);
+
+        // DIFFS #4：注册即登录，签发 JWT 一并返回
+        String token = jwtUtil.generateToken(user.getId(), user.getPhone());
+        LoginVO vo = new LoginVO();
+        vo.setToken(token);
+        vo.setUserId(user.getId());
+        vo.setNickname(nickname);
+
         log.info("用户注册成功, userId={}, phone={}", user.getId(), phone);
-        return Result.success(user.getId());
+        return Result.success(vo);
     }
 
     @Override
