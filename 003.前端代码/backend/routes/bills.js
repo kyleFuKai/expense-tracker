@@ -2,6 +2,7 @@ const express = require('express');
 const pool = require('../config/db');
 const { authMiddleware } = require('../middleware/auth');
 const logger = require('../utils/logger');
+const { buildBillWhere, appendCondition } = require('../utils/billQuery');
 const ExcelJS = require('exceljs');
 
 const router = express.Router();
@@ -19,39 +20,22 @@ router.get('/', async (req, res) => {
     const pageSize = Math.max(1, Math.min(100, parseInt(req.query.pageSize) || 50));
 
     try {
-        const conditions = ['user_id = ?'];
-        const params = [user.id];
-
-        if (month) {
-            conditions.push('DATE_FORMAT(bill_time, "%Y-%m") = ?');
-            params.push(month);
-        }
-        if (categoryId) {
-            conditions.push('category_id = ?');
-            params.push(parseInt(categoryId));
-        }
-        if (type) {
-            conditions.push('type = ?');
-            params.push(type.toUpperCase());
-        }
-        if (keyword) {
-            conditions.push('remark LIKE ?');
-            params.push(`%${keyword}%`);
-        }
-
-        const where = 'WHERE ' + conditions.join(' AND ');
-        // WHERE clause for queries with table alias 'b' (e.g., bill b)
-        const whereB = 'WHERE ' + conditions.map(function (c) {
-            // Already has table prefix or function wrapper — keep as-is
-            if (/^[a-z_]+\./.test(c) || c.indexOf('(') !== -1) return c;
-            return 'b.' + c;
-        }).join(' AND ');
+        const filters = {
+            userId: user.id,
+            month,
+            categoryId,
+            type,
+            keyword,
+        };
+        // 主查询带表别名 b，countQuery 在带 tag 分支同样需要 b
+        const { where: whereB, params: whereParams } = buildBillWhere(filters, { alias: 'b' });
         const offset = (page - 1) * pageSize;
 
-        let query, countQuery, queryParams;
+        let query, countQuery, queryParams, countParams;
 
         if (tagId) {
-            // Filter by tag_id: INNER JOIN bill_tag_rel
+            // 按 tag 过滤：INNER JOIN bill_tag_rel，tag_id 既出现在 JOIN 也出现在 WHERE
+            const tagWhere = appendCondition({ where: whereB, params: whereParams }, 'btr2.tag_id = ?', [parseInt(tagId)]);
             query = `SELECT b.*, c.name AS category_name, c.icon AS category_icon,
                         (SELECT JSON_ARRAYAGG(JSON_OBJECT('id', bt.id, 'name', bt.name))
                          FROM bill_tag_rel btr
@@ -60,12 +44,13 @@ router.get('/', async (req, res) => {
                      FROM bill b
                      LEFT JOIN category c ON b.category_id = c.id
                      INNER JOIN bill_tag_rel btr2 ON b.id = btr2.bill_id AND btr2.tag_id = ?
-                     ${whereB.replace(/^WHERE /, 'WHERE btr2.tag_id = ? AND ').replace('user_id = ?', 'b.user_id = ?')}
+                     ${tagWhere.where}
                      ORDER BY b.bill_time DESC
                      LIMIT ? OFFSET ?`;
-            queryParams = [parseInt(tagId), parseInt(tagId), ...params.slice(1), pageSize, offset];
+            queryParams = [parseInt(tagId), ...tagWhere.params, pageSize, offset];
 
-            countQuery = `SELECT COUNT(*) AS total FROM bill b INNER JOIN bill_tag_rel btr2 ON b.id = btr2.bill_id ${whereB.replace(/^WHERE /, 'WHERE btr2.tag_id = ? AND ').replace('user_id = ?', 'b.user_id = ?')}`;
+            countQuery = `SELECT COUNT(*) AS total FROM bill b INNER JOIN bill_tag_rel btr2 ON b.id = btr2.bill_id ${tagWhere.where}`;
+            countParams = tagWhere.params;
         } else {
             query = `SELECT b.*, c.name AS category_name, c.icon AS category_icon,
                         (SELECT JSON_ARRAYAGG(JSON_OBJECT('id', bt.id, 'name', bt.name))
@@ -77,13 +62,13 @@ router.get('/', async (req, res) => {
                      ${whereB}
                      ORDER BY b.bill_time DESC
                      LIMIT ? OFFSET ?`;
-            queryParams = [...params, pageSize, offset];
+            queryParams = [...whereParams, pageSize, offset];
             countQuery = `SELECT COUNT(*) AS total FROM bill b ${whereB}`;
+            countParams = whereParams;
         }
 
         const [rows] = await pool.query(query, queryParams);
-
-        const [[{ total }]] = await pool.query(countQuery, tagId ? [parseInt(tagId), ...params.slice(1)] : params);
+        const [[{ total }]] = await pool.query(countQuery, countParams);
 
         const list = rows.map(row => {
             const r = { ...row };
@@ -110,35 +95,19 @@ router.get('/export', async (req, res) => {
     const endDate = req.query.end_date;
 
     try {
-        const conditions = ['b.user_id = ?'];
-        const params = [user.id];
+        const { where, params } = buildBillWhere(
+            {
+                userId: user.id,
+                month,
+                type,
+                categoryId,
+                keyword,
+                startDate,
+                endDate,
+            },
+            { alias: 'b' }
+        );
 
-        if (month) {
-            conditions.push('DATE_FORMAT(b.bill_time, "%Y-%m") = ?');
-            params.push(month);
-        }
-        if (type) {
-            conditions.push('b.type = ?');
-            params.push(type.toUpperCase());
-        }
-        if (categoryId) {
-            conditions.push('b.category_id = ?');
-            params.push(parseInt(categoryId));
-        }
-        if (keyword) {
-            conditions.push('b.remark LIKE ?');
-            params.push(`%${keyword}%`);
-        }
-        if (startDate) {
-            conditions.push('b.bill_time >= ?');
-            params.push(startDate);
-        }
-        if (endDate) {
-            conditions.push('b.bill_time <= ?');
-            params.push(endDate + ' 23:59:59');
-        }
-
-        const where = 'WHERE ' + conditions.join(' AND ');
         const [rows] = await pool.query(
             `SELECT b.bill_time, b.type, c.name AS category_name, b.amount, b.remark,
                     (SELECT GROUP_CONCAT(bt.name SEPARATOR ', ')
@@ -340,31 +309,25 @@ router.get('/stats/month', async (req, res) => {
     const month = req.query.month; // 格式: 2026-05
 
     try {
-        const conditions = ['user_id = ?'];
-        const params = [user.id];
+        const filters = { userId: user.id, month };
+        // 不带别名版本，用于 FROM bill ...
+        const base = buildBillWhere(filters);
+        // 带别名 b 版本，用于 FROM bill b JOIN category ...
+        const baseB = buildBillWhere(filters, { alias: 'b' });
 
-        if (month) {
-            conditions.push('DATE_FORMAT(bill_time, "%Y-%m") = ?');
-            params.push(month);
-        }
-
-        const where = 'WHERE ' + conditions.join(' AND ');
-        // WHERE clause for queries with table alias 'b' (e.g., bill b)
-        const whereB = 'WHERE ' + conditions.map(function (c) {
-            // Already has table prefix or function wrapper — keep as-is
-            if (/^[a-z_]+\./.test(c) || c.indexOf('(') !== -1) return c;
-            return 'b.' + c;
-        }).join(' AND ');
+        const expenseQ = appendCondition(base, 'type = ?', ['EXPENSE']);
+        const incomeQ = appendCondition(base, 'type = ?', ['INCOME']);
+        const categoryQ = appendCondition(baseB, 'b.type = ?', ['EXPENSE']);
 
         const [[expense]] = await pool.query(
             `SELECT COALESCE(SUM(amount), 0) AS total, COUNT(*) AS count
-             FROM bill ${where} AND type = 'EXPENSE'`,
-            params
+             FROM bill ${expenseQ.where}`,
+            expenseQ.params
         );
         const [[income]] = await pool.query(
             `SELECT COALESCE(SUM(amount), 0) AS total, COUNT(*) AS count
-             FROM bill ${where} AND type = 'INCOME'`,
-            params
+             FROM bill ${incomeQ.where}`,
+            incomeQ.params
         );
 
         // 按日分组统计（近30天趋势用）
@@ -372,11 +335,11 @@ router.get('/stats/month', async (req, res) => {
             `SELECT DATE(bill_time) AS date,
                     COALESCE(SUM(CASE WHEN type = 'EXPENSE' THEN amount ELSE 0 END), 0) AS expense,
                     COALESCE(SUM(CASE WHEN type = 'INCOME' THEN amount ELSE 0 END), 0) AS income
-             FROM bill ${where}
+             FROM bill ${base.where}
              GROUP BY DATE(bill_time)
              ORDER BY date DESC
              LIMIT 30`,
-            params
+            base.params
         );
 
         // 按分类统计
@@ -386,10 +349,10 @@ router.get('/stats/month', async (req, res) => {
                     COUNT(*) AS count
              FROM bill b
              LEFT JOIN category c ON b.category_id = c.id
-             ${whereB} AND b.type = 'EXPENSE'
+             ${categoryQ.where}
              GROUP BY c.id, c.name, c.icon
              ORDER BY total DESC`,
-            params
+            categoryQ.params
         );
 
         // 计算上月日期
