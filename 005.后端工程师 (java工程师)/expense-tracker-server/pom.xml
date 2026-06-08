@@ -89,6 +89,13 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
+        <!-- Redis (集群可用的 SMS 验证码 / 登录失败计数存储；
+             配 app.session-store=memory 时也可不连 Redis 直接启动) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+
         <!-- Apache POI (Excel export) -->
         <dependency>
             <groupId>org.apache.poi</groupId>

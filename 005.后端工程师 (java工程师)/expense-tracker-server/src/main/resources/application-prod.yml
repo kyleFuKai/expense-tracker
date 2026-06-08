@@ -7,6 +7,18 @@ spring:
     username: ${DB_USER}
     password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DB:0}
+      timeout: 3s
+      lettuce:
+        pool:
+          max-active: 16
+          max-idle: 8
+          min-idle: 2
 
 mybatis-plus:
   configuration:
@@ -22,6 +34,17 @@ mybatis-plus:
 jwt:
   secret: ${JWT_SECRET}
   expiration: 604800000
+
+# prod 默认走 Redis，多实例共享登录失败计数与短信验证码
+app:
+  session-store: ${SESSION_STORE:redis}
+  session-store-prefix: ${SESSION_STORE_PREFIX:expense-tracker}
+  login:
+    max-attempts: 5
+    lock-window-ms: 900000
+  sms:
+    # prod 默认 noop —— 接入真通道前宁可显式拒绝，也不要 666666 暗门
+    provider: ${SMS_PROVIDER:noop}
 
 logging:
   level:

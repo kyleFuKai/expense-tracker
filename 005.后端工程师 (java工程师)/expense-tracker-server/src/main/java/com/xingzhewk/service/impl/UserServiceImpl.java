@@ -13,6 +13,9 @@ import com.xingzhewk.entity.User;
 import com.xingzhewk.common.exception.BusinessException;
 import com.xingzhewk.mapper.UserMapper;
 import com.xingzhewk.service.UserService;
+import com.xingzhewk.service.sms.SmsProvider;
+import com.xingzhewk.service.store.LoginAttemptStore;
+import com.xingzhewk.service.store.SmsCodeStore;
 import com.xingzhewk.util.JwtUtil;
 import com.xingzhewk.util.PasswordUtil;
 import com.xingzhewk.vo.LoginVO;
@@ -23,8 +26,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.BeanUtils;
 
+import java.security.SecureRandom;
 import java.util.regex.Pattern;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Service
@@ -40,51 +43,18 @@ public class UserServiceImpl implements UserService {
     /** 短信验证码发送间隔：60 秒 */
     private static final long SMS_CODE_SEND_INTERVAL_MS = 60 * 1000L;
 
-    /** 测试用固定验证码 */
-    private static final String TEST_SMS_CODE = "666666";
-
-    /** 登录失败最大次数 */
-    private static final int MAX_LOGIN_ATTEMPTS = 5;
-
-    /** 登录锁定窗口：15 分钟 */
-    private static final long LOGIN_LOCK_WINDOW_MS = 15 * 60 * 1000L;
-
-    /** 存储短信验证码及发送时间。Key: phone, Value: 验证码记录 */
-    private final ConcurrentHashMap<String, SmsCodeRecord> smsCodeStore = new ConcurrentHashMap<>();
-
-    /** 存储登录失败次数。Key: phone, Value: 失败记录 */
-    private final ConcurrentHashMap<String, LoginAttemptRecord> loginAttemptStore = new ConcurrentHashMap<>();
-
     /**
-     * 短信验证码记录
+     * SecureRandom 一次实例化即可，本身线程安全。
+     * 不用 ThreadLocalRandom 是因为这是安全敏感的码（被枚举=账号接管）。
      */
-    private static class SmsCodeRecord {
-        final String code;
-        final long sendTimeMs;
-        SmsCodeRecord(String code, long sendTimeMs) {
-            this.code = code;
-            this.sendTimeMs = sendTimeMs;
-        }
-    }
-
-    /**
-     * 登录失败记录
-     */
-    private static class LoginAttemptRecord {
-        int failedCount;
-        long firstFailTimeMs;
-        LoginAttemptRecord() {
-            this.failedCount = 1;
-            this.firstFailTimeMs = System.currentTimeMillis();
-        }
-        void increment() {
-            this.failedCount++;
-        }
-    }
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final UserMapper userMapper;
     private final JwtUtil jwtUtil;
     private final PasswordUtil passwordUtil;
+    private final LoginAttemptStore loginAttemptStore;
+    private final SmsCodeStore smsCodeStore;
+    private final SmsProvider smsProvider;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -132,16 +102,11 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException(400, "手机号格式不正确");
         }
 
-        // Check if account is locked due to too many failed attempts
-        LoginAttemptRecord record = loginAttemptStore.get(phone);
-        if (record != null && record.failedCount >= MAX_LOGIN_ATTEMPTS
-                && System.currentTimeMillis() - record.firstFailTimeMs < LOGIN_LOCK_WINDOW_MS) {
-            long remainingSeconds = (LOGIN_LOCK_WINDOW_MS - (System.currentTimeMillis() - record.firstFailTimeMs)) / 1000;
+        // 锁定窗口由 store 内部按 TTL 维护，外层只看「还剩多久」
+        long lockedMs = loginAttemptStore.lockedRemainingMs(phone);
+        if (lockedMs > 0) {
+            long remainingSeconds = (lockedMs + 999) / 1000; // 向上取整，不要给用户看到 0 秒
             throw new BusinessException(429, "登录失败次数过多，请 " + remainingSeconds + " 秒后再试");
-        }
-        // Lock window expired, reset
-        if (record != null && record.failedCount >= MAX_LOGIN_ATTEMPTS) {
-            loginAttemptStore.remove(phone);
         }
 
         User user = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getPhone, phone));
@@ -156,7 +121,7 @@ public class UserServiceImpl implements UserService {
         }
 
         // Login success: clear failed attempts
-        loginAttemptStore.remove(phone);
+        loginAttemptStore.clear(phone);
 
         String token = jwtUtil.generateToken(user.getId(), user.getPhone());
 
@@ -171,13 +136,8 @@ public class UserServiceImpl implements UserService {
      * 记录登录失败，超过阈值则锁定账号
      */
     private void recordFailedLogin(String phone) {
-        LoginAttemptRecord record = loginAttemptStore.get(phone);
-        if (record == null) {
-            loginAttemptStore.put(phone, new LoginAttemptRecord());
-        } else {
-            record.increment();
-        }
-        log.warn("登录失败, phone={}, 失败次数={}", phone, loginAttemptStore.get(phone).failedCount);
+        int failedCount = loginAttemptStore.recordFailure(phone);
+        log.warn("登录失败, phone={}, 失败次数={}", phone, failedCount);
     }
 
     @Override
@@ -261,15 +221,42 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException(404, "手机号未注册");
         }
 
-        long now = System.currentTimeMillis();
-        SmsCodeRecord existing = smsCodeStore.get(phone);
-        if (existing != null && now - existing.sendTimeMs < SMS_CODE_SEND_INTERVAL_MS) {
+        // 先做频控（用临时占位 code），避免短信通道被刷
+        // 真正的 code 留到下一步生成 —— 频控失败时不浪费熵
+        String code = generateSmsCode();
+
+        boolean stored = smsCodeStore.putIfNotThrottled(
+                phone, code, SMS_CODE_EXPIRY_SECONDS, SMS_CODE_SEND_INTERVAL_MS);
+        if (!stored) {
             throw new BusinessException(429, "发送过于频繁，请稍后再试");
         }
 
-        smsCodeStore.put(phone, new SmsCodeRecord(TEST_SMS_CODE, now));
-        log.info("短信验证码已发送, phone={}", phone);
+        // 走通道下发。送达失败（如 NoopSmsProvider）就回滚存储，避免出现「码已存但用户收不到」
+        boolean delivered;
+        try {
+            delivered = smsProvider.send(phone, code);
+        } catch (RuntimeException ex) {
+            smsCodeStore.remove(phone);
+            log.error("短信发送异常 provider={} phone={}", smsProvider.name(), phone, ex);
+            throw new BusinessException(503, "短信服务暂不可用，请稍后再试");
+        }
+        if (!delivered) {
+            smsCodeStore.remove(phone);
+            throw new BusinessException(503, "短信功能暂未开放，请联系管理员重置密码");
+        }
+
+        log.info("短信验证码已发送, provider={}, phone={}", smsProvider.name(), phone);
         return Result.success();
+    }
+
+    /**
+     * 生成 6 位数字验证码。
+     *
+     * 用 SecureRandom 而不是 ThreadLocalRandom：验证码的安全模型就是「攻击者
+     * 拿不到 → 拿不到账号」，弱随机源会让 100 万的空间被预测攻击大幅缩小。
+     */
+    private String generateSmsCode() {
+        return String.format("%06d", SECURE_RANDOM.nextInt(1_000_000));
     }
 
     @Override
@@ -293,11 +280,11 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException(400, "密码需包含大小写字母、数字和特殊字符");
         }
 
-        SmsCodeRecord record = smsCodeStore.get(phone);
-        if (record == null || System.currentTimeMillis() - record.sendTimeMs > SMS_CODE_EXPIRY_SECONDS * 1000) {
+        String storedCode = smsCodeStore.get(phone);
+        if (storedCode == null) {
             throw new BusinessException(400, "验证码已过期");
         }
-        if (!record.code.equals(dto.getSmsCode())) {
+        if (!storedCode.equals(dto.getSmsCode())) {
             throw new BusinessException(400, "验证码错误");
         }
 

@@ -2,6 +2,11 @@ spring:
   config:
     activate:
       on-profile: dev
+  # memory 模式不连 Redis，关掉自动装配避免启动时 ping 失败；改 SESSION_STORE=redis 时移除此排除
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
   datasource:
     url: jdbc:mysql://${DB_HOST}:${DB_PORT:3306}/${DB_NAME}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
     username: ${DB_USER:root}
@@ -30,6 +35,19 @@ mybatis-plus:
 jwt:
   secret: ${JWT_SECRET:}
   expiration: 604800000
+
+# 会话/限流存储后端：memory(单机/dev) | redis(集群/prod)
+app:
+  session-store: ${SESSION_STORE:memory}
+  session-store-prefix: ${SESSION_STORE_PREFIX:expense-tracker}
+  login:
+    max-attempts: 5
+    lock-window-ms: 900000      # 15 分钟
+    cleanup-interval-ms: 60000  # memory 模式下的兜底清理周期，redis 模式忽略
+  sms:
+    cleanup-interval-ms: 60000
+    # 短信通道：log(写日志, dev 默认) | noop(拒绝发送) | 未来 aliyun/tencent
+    provider: ${SMS_PROVIDER:log}
 
 logging:
   level:
