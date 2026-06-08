@@ -22,11 +22,19 @@ import com.xingzhewk.vo.LoginVO;
 import com.xingzhewk.vo.UserVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.BeanUtils;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.SecureRandom;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 @Slf4j
@@ -49,12 +57,26 @@ public class UserServiceImpl implements UserService {
      */
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
+    /** 头像 MIME 白名单 */
+    private static final Set<String> AVATAR_MIME_WHITELIST = Set.of(
+            "image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp");
+
+    /** 头像最大字节数：2 MiB（与 Node + 契约 x-constants.avatar.maxBytes 一致） */
+    private static final long AVATAR_MAX_BYTES = 2L * 1024 * 1024;
+
     private final UserMapper userMapper;
     private final JwtUtil jwtUtil;
     private final PasswordUtil passwordUtil;
     private final LoginAttemptStore loginAttemptStore;
     private final SmsCodeStore smsCodeStore;
     private final SmsProvider smsProvider;
+
+    /**
+     * 头像落盘目录。默认 ../finance/uploads/avatars/ —— 与 Node 后端共享同一目录。
+     * 通过 app.upload.avatar-dir 可覆盖，未来切 NFS / 对象存储不需要改代码。
+     */
+    @Value("${app.upload.avatar-dir:../finance/uploads/avatars}")
+    private String avatarDir;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -301,5 +323,108 @@ public class UserServiceImpl implements UserService {
         smsCodeStore.remove(phone);
         log.info("密码重置成功, phone={}", phone);
         return Result.success();
+    }
+
+    // ===== DIFFS #5: 补齐 Node 端独有的 3 个用户端点 =====
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Void> bindPhone(Long userId, String phone) {
+        if (phone == null || phone.isBlank()) {
+            throw new BusinessException(400, "手机号不能为空");
+        }
+        String normalized = phone.replaceAll("\\s", "");
+        if (!PHONE_PATTERN.matcher(normalized).matches()) {
+            throw new BusinessException(400, "手机号格式不正确");
+        }
+
+        // 防重：同手机号已被其他账号绑定
+        Long conflict = userMapper.selectCount(new LambdaQueryWrapper<User>()
+                .eq(User::getPhone, normalized)
+                .ne(User::getId, userId));
+        if (conflict > 0) {
+            throw new BusinessException(409, "该手机号已被其他账号绑定");
+        }
+
+        User update = new User();
+        update.setId(userId);
+        update.setPhone(normalized);
+        userMapper.updateById(update);
+        log.info("绑定手机号成功, userId={}, phone={}", userId, normalized);
+        return Result.success();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Void> unbindPhone(Long userId) {
+        // 与 Node 一致：phone 置空、country_code 重置为 +86
+        User update = new User();
+        update.setId(userId);
+        update.setPhone("");
+        update.setCountryCode("+86");
+        userMapper.updateById(update);
+        log.info("解绑手机号成功, userId={}", userId);
+        return Result.success();
+    }
+
+    @Override
+    public Result<Map<String, String>> uploadAvatar(Long userId, MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new BusinessException(400, "未选择文件");
+        }
+        if (file.getSize() > AVATAR_MAX_BYTES) {
+            throw new BusinessException(400, "头像大小不能超过 2 MiB");
+        }
+        String contentType = file.getContentType();
+        if (contentType == null || !AVATAR_MIME_WHITELIST.contains(contentType.toLowerCase())) {
+            throw new BusinessException(400, "仅支持图片格式（jpg/png/gif/webp）");
+        }
+
+        // 文件名：user_<uid>_<ts>.<ext>，与 Node 命名一致
+        String ext = extractExtension(file.getOriginalFilename(), contentType);
+        String filename = "user_" + userId + "_" + System.currentTimeMillis() + ext;
+        Path dir = Paths.get(avatarDir).toAbsolutePath().normalize();
+        Path target = dir.resolve(filename);
+
+        try {
+            Files.createDirectories(dir);
+            file.transferTo(target.toFile());
+        } catch (IOException e) {
+            log.error("保存头像失败 userId={} target={}", userId, target, e);
+            throw new BusinessException(500, "保存头像失败");
+        }
+
+        // URL 走 /uploads/avatars/，由 WebConfig.addResourceHandlers 映射到 avatarDir
+        String url = "/uploads/avatars/" + filename;
+        User update = new User();
+        update.setId(userId);
+        update.setAvatarUrl(url);
+        userMapper.updateById(update);
+        log.info("头像上传成功, userId={}, url={}", userId, url);
+        return Result.success(Map.of("url", url));
+    }
+
+    /**
+     * 优先从原文件名取扩展名，缺失时按 MIME 兜底。避免恶意上传 `evil.exe` 后写入磁盘。
+     */
+    private static String extractExtension(String originalFilename, String contentType) {
+        if (originalFilename != null) {
+            int dot = originalFilename.lastIndexOf('.');
+            if (dot >= 0 && dot < originalFilename.length() - 1) {
+                String ext = originalFilename.substring(dot).toLowerCase();
+                // 只接受图片扩展名
+                if (Set.of(".jpg", ".jpeg", ".png", ".gif", ".webp").contains(ext)) {
+                    return ext;
+                }
+            }
+        }
+        // MIME 兜底
+        return switch (contentType.toLowerCase()) {
+            case "image/jpeg", "image/jpg" -> ".jpg";
+            case "image/png" -> ".png";
+            case "image/gif" -> ".gif";
+            case "image/webp" -> ".webp";
+            default -> ".bin";
+        };
     }
 }

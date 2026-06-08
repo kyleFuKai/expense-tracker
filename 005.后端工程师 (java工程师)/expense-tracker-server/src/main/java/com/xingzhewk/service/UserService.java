@@ -9,6 +9,9 @@ import com.xingzhewk.dto.ResetPasswordDTO;
 import com.xingzhewk.dto.SendSmsCodeDTO;
 import com.xingzhewk.vo.LoginVO;
 import com.xingzhewk.vo.UserVO;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Map;
 
 /**
  * 用户服务接口
@@ -75,4 +78,30 @@ public interface UserService {
      * @return 空，code=400 表示验证码错误或过期，code=404 表示手机号未注册
      */
     Result<Void> resetPassword(ResetPasswordDTO dto);
+
+    /**
+     * 绑定手机号（DIFFS #5）
+     *
+     * @param userId 用户 ID
+     * @param phone  目标手机号
+     * @return 空；code=409 表示手机号已被其他账号绑定
+     */
+    Result<Void> bindPhone(Long userId, String phone);
+
+    /**
+     * 解绑手机号（DIFFS #5）。phone 置空、country_code 重置为 +86。
+     *
+     * @param userId 用户 ID
+     * @return 空
+     */
+    Result<Void> unbindPhone(Long userId);
+
+    /**
+     * 上传头像（DIFFS #5）。文件大小 ≤ 2 MiB，MIME 必须为 image/{jpeg,png,gif,webp}。
+     *
+     * @param userId 用户 ID
+     * @param file   头像文件
+     * @return {url: "/uploads/avatars/user_<uid>_<ts>.<ext>"}
+     */
+    Result<Map<String, String>> uploadAvatar(Long userId, MultipartFile file);
 }

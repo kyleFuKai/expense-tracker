@@ -1,6 +1,11 @@
 spring:
   profiles:
     active: dev
+  servlet:
+    multipart:
+      # 头像上传上限 2 MiB（DIFFS #5，与 Node 后端 + contracts/openapi.yaml x-constants.avatar.maxBytes 对齐）
+      max-file-size: 2MB
+      max-request-size: 2MB
 
 server:
   port: 8080

@@ -9,6 +9,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Map;
 
 /**
  * 用户控制器
@@ -56,5 +59,38 @@ public class UserController {
     public Result<Void> changePassword(HttpServletRequest request, @Valid @RequestBody ChangePasswordDTO dto) {
         Long userId = (Long) request.getAttribute("userId");
         return userService.changePassword(userId, dto);
+    }
+
+    /**
+     * 绑定手机号（DIFFS #5）。
+     *
+     * @param body 包含 phone 字段
+     * @return 空；code=409 表示手机号已被其他账号绑定
+     */
+    @PutMapping("/bind-phone")
+    public Result<Void> bindPhone(HttpServletRequest request, @RequestBody Map<String, String> body) {
+        Long userId = (Long) request.getAttribute("userId");
+        return userService.bindPhone(userId, body.get("phone"));
+    }
+
+    /**
+     * 解绑手机号（DIFFS #5）。phone 置空、country_code 重置为 +86。
+     */
+    @PutMapping("/unbind-phone")
+    public Result<Void> unbindPhone(HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        return userService.unbindPhone(userId);
+    }
+
+    /**
+     * 上传头像（DIFFS #5）。multipart/form-data，字段名 avatar，大小 ≤ 2 MiB。
+     *
+     * @return {url: "/uploads/avatars/user_<uid>_<ts>.<ext>"}
+     */
+    @PostMapping("/upload-avatar")
+    public Result<Map<String, String>> uploadAvatar(HttpServletRequest request,
+                                                    @RequestParam("avatar") MultipartFile avatar) {
+        Long userId = (Long) request.getAttribute("userId");
+        return userService.uploadAvatar(userId, avatar);
     }
 }

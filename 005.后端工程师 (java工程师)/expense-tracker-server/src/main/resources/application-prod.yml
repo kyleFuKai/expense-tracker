@@ -45,6 +45,10 @@ app:
   sms:
     # prod 默认 noop —— 接入真通道前宁可显式拒绝，也不要 666666 暗门
     provider: ${SMS_PROVIDER:noop}
+  upload:
+    # 头像目录。prod 部署务必显式设 APP_AVATAR_DIR 到 NFS / 持久卷，
+    # 否则容器重启会丢文件。可挂载到对象存储 fuse mount 上。
+    avatar-dir: ${APP_AVATAR_DIR:/data/uploads/avatars}
 
 logging:
   level:

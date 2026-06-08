@@ -81,6 +81,7 @@
 
 ### #5 `[compat]` Java 端缺失 3 个用户端点
 
+- **状态**：✅ done (Java 补齐 bindPhone/unbindPhone/uploadAvatar + WebConfig 静态映射 + app.upload.avatar-dir 配置，2026-06-08)
 - **现状**：Node 有，Java 无：
   - `PUT /api/user/bind-phone`
   - `PUT /api/user/unbind-phone`

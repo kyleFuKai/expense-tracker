@@ -48,6 +48,9 @@ app:
     cleanup-interval-ms: 60000
     # 短信通道：log(写日志, dev 默认) | noop(拒绝发送) | 未来 aliyun/tencent
     provider: ${SMS_PROVIDER:log}
+  upload:
+    # 头像目录。默认 ../finance/uploads/avatars —— 与 Node 后端共享同一目录
+    avatar-dir: ${APP_AVATAR_DIR:../finance/uploads/avatars}
 
 logging:
   level:
