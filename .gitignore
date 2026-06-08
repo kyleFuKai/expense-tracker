@@ -43,3 +43,12 @@ out/
 *.bak
 *.swp
 *~
+test_*.json
+
+# Agent / tooling local state (may contain secrets — keep out of repo)
+.codex/
+.agents/
+.superpowers/
+
+# Contract test reports (generated, regenerate via contracts/contract-test.sh)
+contracts/reports/
