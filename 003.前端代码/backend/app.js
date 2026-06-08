@@ -14,7 +14,26 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // CORS 跨域支持
-app.use(cors());
+// DIFFS #14：收紧到白名单，源走环境变量。prod 部署时必须显式设置 CORS_ORIGINS。
+// 逗号分隔多个来源，例如：CORS_ORIGINS=https://app.example.com,https://admin.example.com
+const corsOriginsEnv = process.env.CORS_ORIGINS || '';
+const defaultDevOrigins = ['http://localhost:3000', 'http://localhost:5500', 'http://127.0.0.1:5500'];
+const allowedOrigins = corsOriginsEnv
+    .split(',').map(s => s.trim()).filter(Boolean)
+    .concat(process.env.NODE_ENV === 'production' ? [] : defaultDevOrigins);
+
+app.use(cors({
+    origin: (origin, cb) => {
+        // 同源 / curl 等无 Origin 头：放行
+        if (!origin) return cb(null, true);
+        if (allowedOrigins.includes(origin)) return cb(null, true);
+        return cb(new Error(`CORS not allowed: ${origin}`));
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    maxAge: 3600,
+}));
 
 // Auth rate limiter: 30 requests / 15 min per IP
 const authLimiter = rateLimit({
