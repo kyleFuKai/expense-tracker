@@ -125,7 +125,7 @@ public class BudgetServiceImpl implements BudgetService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Result<Long> createOrUpdate(Long userId, BudgetDTO dto) {
+    public Result<Map<String, Long>> createOrUpdate(Long userId, BudgetDTO dto) {
         if (dto.getAmount() == null || dto.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new BusinessException(400, "预算金额必须大于0");
         }
@@ -147,7 +147,7 @@ public class BudgetServiceImpl implements BudgetService {
             existing.setEndDate(dto.getEndDate());
             budgetMapper.updateById(existing);
             log.info("更新预算, budgetId={}", existing.getId());
-            return Result.success(existing.getId());
+            return Result.success(Map.of("id", existing.getId()));
         }
 
         Budget budget = new Budget();
@@ -161,7 +161,7 @@ public class BudgetServiceImpl implements BudgetService {
 
         budgetMapper.insert(budget);
         log.info("创建预算, budgetId={}", budget.getId());
-        return Result.success(budget.getId());
+        return Result.success(Map.of("id", budget.getId()));
     }
 
     @Override

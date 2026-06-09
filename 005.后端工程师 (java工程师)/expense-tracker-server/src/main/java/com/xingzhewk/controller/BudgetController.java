@@ -9,6 +9,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 /**
  * 预算控制器
  *
@@ -50,10 +52,10 @@ public class BudgetController {
      * 创建或更新预算
      *
      * @param dto 预算参数，包含 categoryId、amount（金额，必须 > 0）、period（预算周期，默认 MONTHLY）、startDate、endDate
-     * @return {id: 预算ID}
+     * @return {id: 预算ID}（DIFFS #11：与 Node 对齐用对象包装）
      */
     @PostMapping
-    public Result<Long> createOrUpdate(HttpServletRequest request, @Valid @RequestBody BudgetDTO dto) {
+    public Result<Map<String, Long>> createOrUpdate(HttpServletRequest request, @Valid @RequestBody BudgetDTO dto) {
         Long userId = (Long) request.getAttribute("userId");
         return budgetService.createOrUpdate(userId, dto);
     }

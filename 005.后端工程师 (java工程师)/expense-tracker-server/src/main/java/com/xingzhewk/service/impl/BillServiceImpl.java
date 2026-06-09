@@ -2,6 +2,7 @@ package com.xingzhewk.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.xingzhewk.common.Constants;
 import com.xingzhewk.common.Result;
 import com.xingzhewk.dto.BillDTO;
 import com.xingzhewk.entity.Bill;
@@ -165,8 +166,8 @@ public class BillServiceImpl implements BillService {
         if (dto.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new BusinessException(400, "金额必须大于 0");
         }
-        if (dto.getRemark() != null && dto.getRemark().length() > 200) {
-            throw new BusinessException(400, "备注不能超过 200 个字符");
+        if (dto.getRemark() != null && dto.getRemark().length() > Constants.MAX_REMARK_LENGTH) {
+            throw new BusinessException(400, "备注不能超过 " + Constants.MAX_REMARK_LENGTH + " 个字符");
         }
 
         Bill bill = new Bill();
@@ -191,8 +192,8 @@ public class BillServiceImpl implements BillService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Result<Void> update(Long userId, Long id, BillDTO dto) {
-        if (dto.getRemark() != null && dto.getRemark().length() > 200) {
-            throw new BusinessException(400, "备注不能超过 200 个字符");
+        if (dto.getRemark() != null && dto.getRemark().length() > Constants.MAX_REMARK_LENGTH) {
+            throw new BusinessException(400, "备注不能超过 " + Constants.MAX_REMARK_LENGTH + " 个字符");
         }
 
         Bill existing = billMapper.selectOne(new LambdaQueryWrapper<Bill>()

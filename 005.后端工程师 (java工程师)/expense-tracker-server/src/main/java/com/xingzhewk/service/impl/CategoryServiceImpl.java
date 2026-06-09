@@ -1,6 +1,7 @@
 package com.xingzhewk.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.xingzhewk.common.Constants;
 import com.xingzhewk.common.Result;
 import com.xingzhewk.dto.CategoryDTO;
 import com.xingzhewk.entity.Bill;
@@ -52,6 +53,10 @@ public class CategoryServiceImpl implements CategoryService {
         if (dto.getName() == null || dto.getName().isBlank() || dto.getType() == null) {
             throw new BusinessException(400, "分类名称和类型不能为空");
         }
+        // DIFFS #15：与 Node 端、契约 x-constants.category.nameMaxLength 对齐
+        if (dto.getName().length() > Constants.MAX_CATEGORY_NAME_LENGTH) {
+            throw new BusinessException(400, "分类名称不能超过 " + Constants.MAX_CATEGORY_NAME_LENGTH + " 个字符");
+        }
 
         Category category = new Category();
         category.setName(dto.getName());
@@ -76,6 +81,10 @@ public class CategoryServiceImpl implements CategoryService {
                 .eq(Category::getId, id).eq(Category::getUserId, userId));
         if (existing == null) {
             throw new BusinessException(404, "分类不存在");
+        }
+        // DIFFS #15：update 同样校验
+        if (dto.getName() != null && dto.getName().length() > Constants.MAX_CATEGORY_NAME_LENGTH) {
+            throw new BusinessException(400, "分类名称不能超过 " + Constants.MAX_CATEGORY_NAME_LENGTH + " 个字符");
         }
 
         Category update = new Category();

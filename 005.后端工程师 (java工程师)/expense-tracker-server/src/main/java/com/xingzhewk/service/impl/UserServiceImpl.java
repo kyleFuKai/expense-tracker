@@ -193,8 +193,8 @@ public class UserServiceImpl implements UserService {
         user.setId(userId);
 
         if (dto.getNickname() != null) {
-            if (dto.getNickname().length() > 50) {
-                throw new BusinessException(400, "昵称长度不能超过 50 个字符");
+            if (dto.getNickname().length() > Constants.MAX_NICKNAME_LENGTH) {
+                throw new BusinessException(400, "昵称长度不能超过 " + Constants.MAX_NICKNAME_LENGTH + " 个字符");
             }
             user.setNickname(dto.getNickname());
         }

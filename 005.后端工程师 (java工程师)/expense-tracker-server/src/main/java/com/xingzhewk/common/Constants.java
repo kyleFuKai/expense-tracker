@@ -3,33 +3,32 @@ package com.xingzhewk.common;
 /**
  * 全局常量定义
  *
- * 包含分页、密码、字段长度等系统级常量。
+ * 与 contracts/openapi.yaml 的 components.x-constants 段对齐。
+ * 修改任何数值之前先改 yaml，再同步两端代码。
+ *
+ * DIFFS #10：清理过 —— 删掉了 DEFAULT_PAGE_SIZE / DEFAULT_NICKNAME_PREFIX
+ * 两个完全未使用的常量；MAX_NICKNAME_LENGTH 由 32 改为 50 以匹配实际校验
+ * （契约 x-constants.nickname.maxLength=50）。
  */
 public final class Constants {
 
     private Constants() {}
 
-    /** 默认每页条数 */
-    public static final int DEFAULT_PAGE_SIZE = 10;
-
-    /** 最大每页条数 */
+    /** 最大每页条数（契约 x-constants.bills.maxPageSize） */
     public static final int MAX_PAGE_SIZE = 100;
 
-    /** 密码最小长度 */
+    /** 密码最小长度（契约 x-constants.password.minLength） */
     public static final int MIN_PASSWORD_LENGTH = 6;
 
-    /** 密码最大长度 */
+    /** 密码最大长度（契约 x-constants.password.maxLength） */
     public static final int MAX_PASSWORD_LENGTH = 20;
 
-    /** 昵称最大长度 */
-    public static final int MAX_NICKNAME_LENGTH = 32;
+    /** 昵称最大长度（契约 x-constants.nickname.maxLength） */
+    public static final int MAX_NICKNAME_LENGTH = 50;
 
-    /** 备注最大长度 */
+    /** 账单备注最大长度（契约 x-constants.bills.remarkMaxLength） */
     public static final int MAX_REMARK_LENGTH = 200;
 
-    /** 分类名称最大长度 */
+    /** 分类名称最大长度（契约 x-constants.category.nameMaxLength） */
     public static final int MAX_CATEGORY_NAME_LENGTH = 20;
-
-    /** 默认昵称前缀（用于注册时未填昵称的情况） */
-    public static final String DEFAULT_NICKNAME_PREFIX = "用户";
 }

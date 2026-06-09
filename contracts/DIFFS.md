@@ -126,6 +126,7 @@
 
 ### #11 `[compat]` `/api/budgets` POST 响应差异
 
+- **状态**：✅ done (Java BudgetController/Service 返 Map.of("id", id)，2026-06-09)
 - **现状**：Node 返 `{data: {id}}`；Java 返 `data: Long`。
 - **契约位置**：[openapi.yaml POST /api/budgets](openapi.yaml)（目标统一 `{id}`）
 - **修复方向**：Java `BudgetController.set` 把 `data` 包成 `Map.of("id", id)`
@@ -157,6 +158,7 @@
 
 ### #10 `[bug]` Java `Constants` 死代码
 
+- **状态**：✅ done (删 DEFAULT_PAGE_SIZE / DEFAULT_NICKNAME_PREFIX；MAX_NICKNAME_LENGTH 32→50 与契约对齐；硬编码改读 Constants，2026-06-09)
 - **现状**：`Constants.java` 定义了一堆与实际校验不匹配的常量：
   - `MAX_NICKNAME_LENGTH=32`（实际用 50）
   - `MAX_CATEGORY_NAME_LENGTH=20`（CategoryService 根本不校验）
@@ -171,6 +173,7 @@
 
 ### #15 `[bug]` `Category name` 长度无校验
 
+- **状态**：✅ done (Java CategoryServiceImpl + Node routes/categories.js 两端 POST/PUT 都加 ≤ 20 校验，2026-06-09)
 - **现状**：契约要求 ≤ 20。两端都**不**校验（Java 的 `Constants.MAX_CATEGORY_NAME_LENGTH=20` 是死代码，Node 在 `routes/categories.js` POST/PUT 里也没校验）。
 - **修复方向**：
   1. Java：在 `CategoryServiceImpl.create/update` 加 `if (name.length() > 20) throw new BusinessException(400, "分类名过长")`

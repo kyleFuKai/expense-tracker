@@ -40,6 +40,10 @@ router.post('/', authMiddleware, async (req, res) => {
     if (!name || !type) {
         return res.status(400).json({ code: 400, msg: '分类名称和类型不能为空' });
     }
+    // DIFFS #15：与 Java + 契约 x-constants.category.nameMaxLength 对齐
+    if (name.length > 20) {
+        return res.status(400).json({ code: 400, msg: '分类名称不能超过 20 个字符' });
+    }
     try {
         const [result] = await pool.query(
             `INSERT INTO category (name, icon, type, parent_id, sort_order, is_preset, user_id)
@@ -56,6 +60,10 @@ router.post('/', authMiddleware, async (req, res) => {
 // PUT /api/categories/:id — 更新分类
 router.put('/:id', authMiddleware, async (req, res) => {
     const { name, icon, sort_order } = req.body;
+    // DIFFS #15：长度校验同 create
+    if (name !== undefined && name.length > 20) {
+        return res.status(400).json({ code: 400, msg: '分类名称不能超过 20 个字符' });
+    }
     try {
         const [[cat]] = await pool.query(
             'SELECT id FROM category WHERE id = ? AND user_id = ?',

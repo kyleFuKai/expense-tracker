@@ -145,7 +145,7 @@ class BudgetServiceTest {
                             .content("{\"category_id\":" + catId + ",\"amount\":500,\"period\":\"MONTHLY\"}"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.code").value(0))
-                    .andExpect(jsonPath("$.data").isNumber());
+                    .andExpect(jsonPath("$.data.id").isNumber()); // DIFFS #11：响应改为 {data:{id:Long}}，与 Node 对齐
         } finally {
             budgetMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.xingzhewk.entity.Budget>()
                     .eq(com.xingzhewk.entity.Budget::getUserId, 2L)

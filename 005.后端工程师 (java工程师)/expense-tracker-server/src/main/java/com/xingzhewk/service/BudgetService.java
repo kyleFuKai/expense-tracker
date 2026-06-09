@@ -5,6 +5,7 @@ import com.xingzhewk.dto.BudgetDTO;
 import com.xingzhewk.vo.BudgetDashboardVO;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 预算服务接口
@@ -36,9 +37,9 @@ public interface BudgetService {
      *
      * @param userId 用户 ID
      * @param dto    预算参数（categoryId、amount、period、startDate、endDate）
-     * @return {id: 预算ID}
+     * @return {id: 预算ID}（DIFFS #11：与 Node 对齐用对象包装）
      */
-    Result<Long> createOrUpdate(Long userId, BudgetDTO dto);
+    Result<Map<String, Long>> createOrUpdate(Long userId, BudgetDTO dto);
 
     /**
      * 停用预算（软删除）
