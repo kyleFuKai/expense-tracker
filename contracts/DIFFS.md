@@ -142,14 +142,17 @@
 
 ## 优先级 2：bug & cleanup
 
-### #9 `[bug]` 预算 dashboard 月末日 29-31 漏算
+### #9 `[bug]` 预算 dashboard 月末日 29-31 漏算 + 6/9/11 月直接抛 SQL 异常
 
-- **现状**：两端都用 `month+'-28'` 作为右端点。`2026-02-28` 之后到月末（28/29/30/31）生效的预算被漏掉。
-- **修复方向**：用"下月 1 日"或"本月最后一天"：
-  ```js
-  const lastDay = new Date(year, month, 0).getDate(); // month=3 → 2 月的最后一天
-  const end = `${year}-${month}-${String(lastDay).padStart(2, '0')}`;
-  ```
+- **状态**：✅ done (Java 用 YearMonth.atEndOfMonth、Node 用 new Date(y, m, 0)，修了两端，2026-06-09)
+- **现状**：原始 DIFFS 描述只提到"两端都用 `month+'-28'` 漏算 29-31"，但 Java 端还有另一个**更严重**的 bug：
+  - `BudgetServiceImpl.dashboard` 第 76、86 行直接拼 `${month}-31` 作账单查询右端
+  - 6/9/11/4 月（30 天）→ MySQL 抛 `Incorrect DATETIME value: '2026-06-31'`
+  - 2 月更严重
+  - 表现：BudgetServiceTest.testDashboard_withBills_returnsRealSpent / _categoryProgress_returnsCategories 失败
+- **修复**：
+  - Java：`YearMonth.parse(targetMonth).atEndOfMonth()` 拿合法的月末日期，账单右端再加 ` 23:59:59` 覆盖整天
+  - Node：`new Date(year, mon, 0).getDate()` 取月末日（mon=6 → 30）
 - **预计工时**：极小，~5 行 × 2 端
 
 ### #10 `[bug]` Java `Constants` 死代码

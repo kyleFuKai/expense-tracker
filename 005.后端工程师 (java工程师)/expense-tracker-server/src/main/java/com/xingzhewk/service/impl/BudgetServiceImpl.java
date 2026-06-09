@@ -53,14 +53,21 @@ public class BudgetServiceImpl implements BudgetService {
         String targetMonth = StringUtils.hasText(month) ? month
                 : LocalDate.now().toString().substring(0, 7);
 
+        // DIFFS #9：计算真实的月末日期，避免硬编码 "-28"（漏算 29-31）或 "-31"（2/4/6/9/11 月会抛 SQL 异常）
+        // YearMonth.atEndOfMonth() 自动处理大小月与闰年
+        String monthFirstDay = targetMonth + "-01";
+        String monthLastDay = java.time.YearMonth.parse(targetMonth).atEndOfMonth().toString();
+        // 账单查询右端用 23:59:59 覆盖月末当天（mapper 用 bill_time <= endDate 闭区间）
+        String monthLastDayEnd = monthLastDay + " 23:59:59";
+
         // Total budget
         LambdaQueryWrapper<Budget> totalWrapper = new LambdaQueryWrapper<Budget>()
                 .eq(Budget::getUserId, userId)
                 .eq(Budget::getCategoryId, 0)
                 .eq(Budget::getIsActive, 1)
                 .eq(Budget::getPeriod, "MONTHLY")
-                .le(Budget::getStartDate, targetMonth + "-28")
-                .and(c -> c.isNull(Budget::getEndDate).or().ge(Budget::getEndDate, targetMonth + "-01"));
+                .le(Budget::getStartDate, monthLastDay)
+                .and(c -> c.isNull(Budget::getEndDate).or().ge(Budget::getEndDate, monthFirstDay));
         List<Budget> totalBudgets = budgetMapper.selectList(totalWrapper);
         BigDecimal totalBudgetAmount = totalBudgets.isEmpty() ? BigDecimal.ZERO : totalBudgets.get(0).getAmount();
 
@@ -70,10 +77,10 @@ public class BudgetServiceImpl implements BudgetService {
                 .ne(Budget::getCategoryId, 0)
                 .eq(Budget::getIsActive, 1)
                 .eq(Budget::getPeriod, "MONTHLY")
-                .le(Budget::getStartDate, targetMonth + "-28")
-                .and(c -> c.isNull(Budget::getEndDate).or().ge(Budget::getEndDate, targetMonth + "-01"));
+                .le(Budget::getStartDate, monthLastDay)
+                .and(c -> c.isNull(Budget::getEndDate).or().ge(Budget::getEndDate, monthFirstDay));
 
-        BigDecimal totalSpent = billMapper.selectSumAmount(userId, targetMonth + "-01", targetMonth + "-31");
+        BigDecimal totalSpent = billMapper.selectSumAmount(userId, monthFirstDay, monthLastDayEnd);
         if (totalSpent == null) totalSpent = BigDecimal.ZERO;
         BigDecimal remaining = totalBudgetAmount.subtract(totalSpent);
         int percent = totalBudgetAmount.compareTo(BigDecimal.ZERO) > 0
@@ -83,7 +90,7 @@ public class BudgetServiceImpl implements BudgetService {
         // Build category progress list
         List<BudgetDashboardVO.CategoryProgress> categoryProgressList = new ArrayList<>();
         for (Budget budget : budgetMapper.selectList(catWrapper)) {
-            BigDecimal catSpent = billMapper.selectSumAmountByCategory(userId, budget.getCategoryId(), targetMonth + "-01", targetMonth + "-31");
+            BigDecimal catSpent = billMapper.selectSumAmountByCategory(userId, budget.getCategoryId(), monthFirstDay, monthLastDayEnd);
             if (catSpent == null) catSpent = BigDecimal.ZERO;
             BigDecimal catRemaining = budget.getAmount().subtract(catSpent);
             int catPercent = budget.getAmount().compareTo(BigDecimal.ZERO) > 0

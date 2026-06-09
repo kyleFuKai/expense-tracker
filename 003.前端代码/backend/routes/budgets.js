@@ -57,12 +57,19 @@ router.get('/dashboard', authMiddleware, async (req, res) => {
     try {
         const month = req.query.month || new Date().toISOString().slice(0, 7); // YYYY-MM
 
+        // DIFFS #9：用真实月末日期作为 startDate 的右端边界，
+        // 避免硬编码 "-28" 漏算 29-31 日生效的预算
+        const [year, mon] = month.split('-').map(Number);
+        const lastDay = new Date(year, mon, 0).getDate(); // mon=6 → new Date(2026, 6, 0) = 2026-06-30
+        const monthLastDay = `${month}-${String(lastDay).padStart(2, '0')}`;
+        const monthFirstDay = `${month}-01`;
+
         // 获取当前月的总预算
         const [[totalBudget]] = await pool.query(
             `SELECT amount FROM budget WHERE user_id = ? AND category_id = 0 AND is_active = 1
              AND start_date <= ? AND (end_date IS NULL OR end_date >= ?)
              AND period = 'MONTHLY'`,
-            [req.user.id, month + '-28', month + '-01']
+            [req.user.id, monthLastDay, monthFirstDay]
         );
 
         // 获取分项预算
@@ -73,7 +80,7 @@ router.get('/dashboard', authMiddleware, async (req, res) => {
              WHERE b.user_id = ? AND b.category_id != 0 AND b.is_active = 1
              AND b.start_date <= ? AND (b.end_date IS NULL OR b.end_date >= ?)
              AND b.period = 'MONTHLY'`,
-            [req.user.id, month + '-28', month + '-01']
+            [req.user.id, monthLastDay, monthFirstDay]
         );
 
         // 本月支出（按分类）
